@@ -1,0 +1,8 @@
+{
+    "editor.quickSuggestions": {
+        "other": "off"
+    },
+    "editor.parameterHints.enabled": false,
+    "html.suggest.html5": false,
+    "editor.snippetSuggestions": "none"
+}

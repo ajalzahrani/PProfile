@@ -1,0 +1,355 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String      @id @default(cuid())
+  name         String
+  email        String      @unique
+  username     String      @unique
+  password     String
+  departmentId String?
+  createdAt    DateTime    @default(now())
+  roleId       String
+  department   Department? @relation(fields: [departmentId], references: [id])
+  role         Role        @relation(fields: [roleId], references: [id])
+
+  // OpenSign specific fields
+  company      String?     // For OpenSign ExtUserPtr.Company
+  phone        String?     // For OpenSign ExtUserPtr.Phone
+  tourStatus   Json?       // For OpenSign TourStatus tracking
+  signatureType Json?      // For OpenSign signature preferences
+
+  documents Document[]        @relation("CreatedDocuments")
+  versions  DocumentVersion[] @relation("UploadedVersions")
+
+  messages           DocumentMessage[]
+  
+  // Notification relations
+  notificationPreferences NotificationPreference[]
+  notifications           Notification[]
+
+  // openSignSigners relations
+  openSignSigner OpenSignSigner[]
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  users       User[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  code        String           @unique // e.g., "manage:occurrences", "view:dashboard"
+  name        String
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model Department {
+  id                String                 @id @default(cuid())
+  name              String                 @unique
+  assignments       DocumentAssignment[]
+  OccurrenceMessage DocumentMessage[]
+  documents         Document[]  @relation("DocumentDepartments") // Relation to documents
+  users             User[]
+}
+
+model DocumentAssignment {
+  id           String    @id @default(cuid())
+  documentId String
+  departmentId String
+  isCompleted  Boolean   @default(false)
+  completedAt  DateTime?
+  assignedAt   DateTime  @default(now())
+  message      String?
+  feedbackId   String?
+
+  department Department @relation(fields: [departmentId], references: [id])
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model DocumentMessage {
+  id                    String      @id @default(cuid())
+  documentId          String
+  senderId              String
+  recipientDepartmentId String?
+  message               String
+  createdAt             DateTime    @default(now())
+  document              Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  recipientDepartment   Department? @relation(fields: [recipientDepartmentId], references: [id])
+  sender                User        @relation(fields: [senderId], references: [id])
+}
+
+// Bussiness
+
+model Document {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  createdBy   String
+  creator     User     @relation("CreatedDocuments", fields: [createdBy], references: [id])
+  tags        String[] // simple list of tags, or create separate Tag model
+  isArchived  Boolean  @default(false)
+  isOrganizationWide Boolean @default(false) // If true, accessible to all departments
+  statusId            String
+  status              DocumentStatus       @relation(fields: [statusId], references: [id])
+
+  categoryId    String?
+  category      DocumentCategory?         @relation(fields: [categoryId], references: [id])
+  departments       Department[]      @relation("DocumentDepartments") // New relation for departments
+
+  // OpenSign specific fields
+  signedUrl         String?   // Final signed document URL
+  isCompleted       Boolean   @default(false)
+  isDeclined        Boolean   @default(false)
+  expiryDate        DateTime? // Document expiration date
+  sendInOrder       Boolean   @default(false)
+  sentToOthers      Boolean   @default(false)
+  sendMail          Boolean   @default(false)
+  timeToCompleteDays Int?     @default(15)
+  requestBody       String?   // Email template body
+  requestSubject    String?   // Email template subject
+  note              String?   // Additional notes
+  signatureType     Json?     // Available signature types
+
+
+  versions  DocumentVersion[]
+  currentVersionId String? @unique
+  currentVersion   DocumentVersion? @relation("CurrentVersion", fields: [currentVersionId], references: [id])
+
+  messages        DocumentMessage[]
+  assignments        DocumentAssignment[]
+
+  // OpenSign relations
+  openSignSigners     OpenSignSigner[]
+  openSignPlaceholders OpenSignPlaceholder[]
+  openSignSignatures  OpenSignSignature[]
+
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model DocumentStatus {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  description String?      // Human-readable description
+  variant     String?
+  documents Document[]
+  documentVersion DocumentVersion[] 
+}
+
+model DocumentVersion {
+  id            String   @id @default(cuid())
+  documentId    String
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  versionNumber Int
+  filePath      String // Relative path or S3/MinIO key
+  fileSize      Int
+  hash          String // SHA-256 of the file
+  changeNote    String?
+  uploadedBy    String
+  uploader      User     @relation("UploadedVersions", fields: [uploadedBy], references: [id])
+  expirationDate DateTime?
+
+  // 🔹 Link each version to a status (Draft, Signed, Published, ...)
+  statusId       String?
+  status         DocumentStatus? @relation(fields: [statusId], references: [id])
+
+  // Reverse relation for currentVersion
+  currentFor    Document? @relation("CurrentVersion")
+
+  createdAt DateTime @default(now())
+}
+
+model DocumentCategory {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  documents   Document[]
+
+  // optional for future hierarchy
+  parentId    String?    
+  parent      DocumentCategory?  @relation("CategoryParent", fields: [parentId], references: [id])
+  children    DocumentCategory[] @relation("CategoryParent")
+
+  createdAt   DateTime   @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String // e.g., "UPLOAD", "EDIT_METADATA", "ARCHIVE", "REVERT"
+  documentId String?
+  versionId  String?
+  details    String? // JSON or plain text summary
+  createdAt  DateTime @default(now())
+}
+
+enum NotificationChannel {
+  EMAIL
+  MOBILE
+  BOTH
+}
+
+// Sent notifications log
+model Notification {
+  id           String               @id @default(cuid())
+  userId       String
+  user         User                 @relation(fields: [userId], references: [id])
+  title        String
+  message      String
+  type         NotificationType
+  channel      NotificationChannel
+  read         Boolean              @default(false)
+  referenceIds String[]             // Store IDs of related entities (occurrences, referrals)
+  createdAt    DateTime             @default(now())
+  metadata     Json?                // Additional context data
+}
+
+// Notification settings per user
+model NotificationPreference {
+  id             String   @id @default(cuid())
+  userId         String
+  enabled        Boolean  @default(true)
+  channel        NotificationChannel
+  email          String?
+  mobile         String?
+  severityLevels String[] // Array of severity IDs the user wants to be notified about
+  incidents  String[] // Array of incident IDs the user wants to be notified about
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, channel])
+}
+
+enum NotificationType {
+  DOCUMENT_CREATED
+  DOCUMENT_UPDATED
+  HIGH_SEVERITY
+  REFERRAL
+  ASSIGNMENT
+  FEEDBACK
+}
+
+/// OpenSign signer linked to a document. May reference an internal user or be external by email.
+model OpenSignSigner {
+  id           String   @id @default(cuid())
+  documentId   String
+  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  // Link to internal user when available
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id])
+
+  // Fallback identity for external signers
+  email        String
+  name         String?
+  phone        String?  // Added phone field
+
+  role         String    // e.g., "approver", "signer", or custom
+  order        Int       @default(1) // signing order
+  blockColor   String?   // UI color for placeholders for this signer
+
+  // OpenSign compatibility fields
+  signerObjId  String?   // OpenSign signer object ID
+  className    String?   @default("contracts_Contactbook") // OpenSign class compatibility
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  placeholders OpenSignPlaceholder[]
+  signatures   OpenSignSignature[]
+
+  @@index([documentId])
+  @@index([email])
+}
+
+/// A widget/placeholder positioned on a document page.
+model OpenSignPlaceholder {
+  id           String   @id @default(cuid())
+  documentId   String
+  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  // Optional assigned signer
+  signerId     String?
+  signer       OpenSignSigner? @relation(fields: [signerId], references: [id])
+
+  // OpenSign compatibility fields
+  signerObjId  String?  // Reference to signer by objectId
+  role         String?  // Signer role
+  blockColor   String?  // UI color for this placeholder
+  isStamp      Boolean? @default(false)
+
+  pageNumber   Int
+  key          String   // Unique key per widget instance within the document
+  type         String   // e.g., signature, initials, stamp, text, checkbox, radio, date, dropdown, cells
+
+  xPosition    Float
+  yPosition    Float
+  width        Float?
+  height       Float?
+
+  // Arbitrary options and state used by the UI (fontSize, fontColor, validation, response, etc.)
+  options      Json?
+
+  // Device-specific scaling metadata used by OpenSign (optional)
+  isMobile     Boolean? @default(false)
+  scale        Float?
+  zIndex       Int?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([documentId, pageNumber])
+  @@unique([documentId, key])
+}
+
+/// A persisted signature or filled value associated with a placeholder/widget
+model OpenSignSignature {
+  id           String   @id @default(cuid())
+  documentId   String
+  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  signerId     String
+  signer       OpenSignSigner @relation(fields: [signerId], references: [id])
+
+  widgetKey    String  // placeholder key this signature/value relates to
+  // For drawn signatures/stamps/initials, store URL or blob key. For text, optionally store value.
+  signUrl      String?
+  value        String?
+
+  createdAt    DateTime @default(now())
+
+  @@index([documentId, widgetKey])
+}
