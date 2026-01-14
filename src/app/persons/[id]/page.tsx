@@ -1,29 +1,22 @@
 import { PageShell } from "@/components/page-shell";
 import { PageHeader } from "@/components/page-header";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { notFound } from "next/navigation";
+import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { getPersonById } from "@/actions/persons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle } from "lucide-react";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { notFound, redirect } from "next/navigation";
-import { PermissionButton } from "@/components/auth/permission-button";
-import { checkServerPermission } from "@/lib/server-permissions";
-import { getCurrentUserFromDB } from "@/actions/auths";
-import { getPersonById } from "@/actions/persons";
+import { PrintCardButton } from "@/components/print-card-button";
 
-export default async function ProfilePage() {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    redirect("/");
-  }
-
-  const person = await getPersonById(session.user.id);
+export default async function PersonPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const personId = (await params).id;
+  const person = await getPersonById(personId);
 
   if (!person) {
     notFound();
@@ -45,8 +38,9 @@ export default async function ProfilePage() {
               Back to Persons
             </Link>
           </Button>
+          <PrintCardButton person={person} />
           <Button asChild>
-            <Link href={`/persons/${person.person?.id}/edit`}>Edit Person</Link>
+            <Link href={`/persons/${personId}/edit`}>Edit Person</Link>
           </Button>
         </div>
       </PageHeader>

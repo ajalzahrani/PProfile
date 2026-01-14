@@ -7,10 +7,8 @@ export const documentSchema = z
     title: z.string().min(2, "Title must be at least 2 characters"),
     categoryId: z.string(),
     departmentIds: z.array(z.string()),
-    isOrganizationWide: z.boolean(),
     description: z.string().optional(),
     createdBy: z.string().min(1, "Creator is required").optional(),
-    tags: z.array(z.string()).optional(), // can be empty or omitted
     isArchived: z.boolean().optional(), // usually defaulted, but allow override
     documentStatus: z.string().optional(),
     changeNote: z.string().optional(),
@@ -33,11 +31,6 @@ export const documentSchema = z
   })
   .refine(
     (data) => {
-      // If organization-wide is true, departmentIds can be empty
-      // If organization-wide is false, departmentIds must have at least one item
-      if (data.isOrganizationWide) {
-        return true;
-      }
       return data.departmentIds && data.departmentIds.length > 0;
     },
     {
@@ -53,8 +46,6 @@ export type SaveInput = {
   categoryId?: string;
   description?: string;
   departmentIds: string[];
-  isOrganizationWide: boolean;
-  tags: string[];
   isArchived: boolean;
   expirationDate: Date | null;
   changeNote?: string;
@@ -64,17 +55,6 @@ export type SaveInput = {
 };
 
 export type DocumentFormValues = z.infer<typeof documentSchema>;
-
-// Schema for referring documents to departments
-export const referDocumentSchema = z.object({
-  documentId: z.string().cuid("Invalid document ID"),
-  departmentIds: z
-    .array(z.string().cuid("Invalid department ID"))
-    .min(1, "At least one department must be selected"),
-  message: z.string().optional(),
-});
-
-export type ReferDocumentFormValues = z.infer<typeof referDocumentSchema>;
 
 export const updateDocumentScopeSchema = z.object({
   documentId: z.string().cuid("Invalid document ID"),

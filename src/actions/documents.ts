@@ -5,10 +5,8 @@ import { getServerSession } from "next-auth";
 import { authOptions, getCurrentUser } from "@/lib/auth";
 import {
   documentSchema,
-  referDocumentSchema,
   updateDocumentScopeSchema,
   type DocumentFormValues,
-  type ReferDocumentFormValues,
   type UpdateDocumentScopeFormValues,
   type SaveInput,
   type SendDocumentMessageInput,
@@ -40,26 +38,16 @@ export async function getDocuments() {
     user?.role === "ADMIN" || user?.role === "QUALITY_ASSURANCE";
 
   const whereCondition = {
-    ...(isAllowedToViewAllDocuments || !user?.departmentId
-      ? {}
-      : {
-          assignments: {
-            some: {
-              departmentId: user.departmentId,
-            },
-          },
-        }),
+    // ...(isAllowedToViewAllDocuments || !user?.departmentId
+    //   ? {}
+    //   : {
+    //     }),
   };
 
   try {
     const documents = await prisma.document.findMany({
       where: { ...whereCondition },
       include: {
-        assignments: {
-          include: {
-            department: true,
-          },
-        },
         versions: true,
         creator: {
           select: {
@@ -133,13 +121,6 @@ export async function getDocumentById(documentId: string) {
           select: {
             id: true,
             name: true,
-          },
-        },
-        assignments: {
-          select: {
-            id: true,
-            isCompleted: true,
-            departmentId: true,
           },
         },
       },
@@ -373,8 +354,6 @@ export async function createDocumentWithVersion(input: SaveInput) {
     categoryId,
     description,
     departmentIds,
-    isOrganizationWide,
-    tags,
     isArchived,
     changeNote,
     expirationDate,
@@ -422,11 +401,6 @@ export async function createDocumentWithVersion(input: SaveInput) {
       data: {
         title,
         description,
-        departments: isOrganizationWide
-          ? { set: [] }
-          : { set: departmentIds.map((d) => ({ id: d })) },
-        isOrganizationWide,
-        tags,
         isArchived,
         status: { connect: { name: documentStatus } },
         updatedAt: new Date(),
@@ -453,9 +427,7 @@ export async function createDocumentWithVersion(input: SaveInput) {
       title,
       description,
       departments: { connect: departmentIds.map((d) => ({ id: d })) },
-      isOrganizationWide,
       status: { connect: { name: documentStatus } },
-      tags,
       isArchived,
       creator: { connect: { id: user.id } },
       ...(categoryId ? { category: { connect: { id: categoryId } } } : {}),
@@ -478,6 +450,166 @@ export async function createDocumentWithVersion(input: SaveInput) {
   }
 
   return { success: true, documentId: created.id, version };
+}
+
+export async function uploadCertificateAction(
+  prevState: any,
+  formData: FormData
+) {
+  try {
+    // 1. Auth Guard
+    const user = await getCurrentUser();
+
+    if (!user) return { success: false, error: "Unauthorized" };
+
+    // 2. Extract Data from FormData
+    const file = formData.get("file") as File;
+    const categoryId = formData.get("categoryId") as string;
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+    const expirationDateStr = formData.get("expirationDate") as string;
+    const departmentIdsRaw = formData.get("departmentIds") as string;
+    const isArchived = formData.get("isArchived") === "true";
+
+    if (!file || !categoryId) {
+      return {
+        success: false,
+        error: "Missing required fields: File or Category",
+      };
+    }
+
+    // 3. Prepare Buffer & Hash
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const hash = crypto.createHash("sha256").update(buffer).digest("hex");
+    const departmentIds = JSON.parse(departmentIdsRaw || "[]");
+
+    // 4. Find Existing Document (Slot check for this User + Category)
+    const existingDoc = await prisma.document.findFirst({
+      where: {
+        categoryId: categoryId,
+        createdBy: user.id,
+        isArchived: false,
+      },
+      include: { versions: true },
+    });
+
+    // 5. Check if this exact file was already uploaded to this document
+    if (existingDoc?.versions.some((v) => v.hash === hash)) {
+      return {
+        success: false,
+        error:
+          "Duplicate document detected: This file has already been uploaded.",
+      };
+    }
+
+    let documentId: string;
+
+    // 6. Database Transaction / Logic
+    if (existingDoc) {
+      // SCENARIO: User is updating/renewing an existing certificate
+      documentId = existingDoc.id;
+      await prisma.document.update({
+        where: { id: documentId },
+        data: {
+          title,
+          description,
+          updatedAt: new Date(),
+          status: { connect: { name: "Submitted" } }, // Reset for Admin review
+        },
+      });
+    } else {
+      // SCENARIO: First time upload for this certificate category
+      const newDoc = await prisma.document.create({
+        data: {
+          title,
+          description,
+          isArchived,
+          createdBy: user.id,
+          categoryId: categoryId,
+          status: { connect: { name: "Submitted" } },
+          departments: {
+            connect: departmentIds.map((id: string) => ({ id })),
+          },
+        },
+      });
+      documentId = newDoc.id;
+    }
+
+    // 7. Leverage your existing Local File Storage logic
+    const versionResult = await generateDocumentVersionTx(
+      documentId,
+      file.name,
+      buffer,
+      hash,
+      user.id,
+      existingDoc ? "Renewed Certificate" : "Initial Certificate Upload",
+      expirationDateStr ? new Date(expirationDateStr) : null,
+      "Submitted"
+    );
+
+    if (!versionResult.success) {
+      return { success: false, error: versionResult.error };
+    }
+
+    // 8. Refresh the UI
+    revalidatePath("/profile");
+    revalidatePath("/documents");
+
+    return {
+      success: true,
+      message: "Certificate uploaded and saved locally.",
+      documentId,
+    };
+  } catch (error: any) {
+    console.error("Server Action Error:", error);
+    return {
+      success: false,
+      error: error.message || "An unexpected error occurred",
+    };
+  }
+}
+
+export async function getUserComplianceStatus(userId: string) {
+  // 1. Get user's job title
+  const person = await prisma.person.findFirst({
+    where: { userId },
+    select: { jobTitleId: true },
+  });
+
+  if (!person?.jobTitleId) return [];
+
+  // 2. Get requirements for that job title
+  const requirements = await prisma.certificateRequirement.findMany({
+    where: { jobTitleId: person.jobTitleId },
+    include: { documentCategory: true },
+  });
+
+  // 3. Get user's existing documents for these categories
+  const userDocs = await prisma.document.findMany({
+    where: {
+      createdBy: userId,
+      categoryId: { in: requirements.map((r) => r.documentCategoryId) },
+    },
+    include: {
+      status: true,
+      currentVersion: true,
+    },
+  });
+
+  // 4. Map them together
+  return requirements.map((req: any) => {
+    const doc = userDocs.find((d) => d.categoryId === req.documentCategoryId);
+    // Add filePath to your mapping in documents.ts -> getUserComplianceStatus
+    return {
+      requirement: req,
+      categoryName: req.documentCategory.name,
+      status: doc ? doc.status.name : "Missing",
+      expiryDate: doc?.currentVersion?.expirationDate,
+      documentId: doc?.id,
+      filePath: doc?.currentVersion?.filePath, // Added for direct viewing
+    };
+  });
 }
 
 /**
@@ -559,7 +691,6 @@ export async function deleteDocument(
       where: { id: documentId },
       include: {
         versions: true,
-        assignments: true,
       },
     });
 
@@ -573,7 +704,6 @@ export async function deleteDocument(
       );
       console.log(`Deletion type: ${deletionType}`);
       console.log(`Versions: ${document.versions.length}`);
-      console.log(`Assignments: ${document.assignments.length}`);
     }
 
     let deletionResult: DeletionResult | undefined;
@@ -595,10 +725,6 @@ export async function deleteDocument(
       await prisma.$transaction(async (tx) => {
         // Delete related records first
         await tx.documentVersion.deleteMany({
-          where: { documentId: document.id },
-        });
-
-        await tx.documentAssignment.deleteMany({
           where: { documentId: document.id },
         });
 
@@ -950,65 +1076,6 @@ export async function revertDocumentToVersion(
 }
 
 /**
- * Refer a document to departments
- */
-export async function referDocumentToDepartments(
-  data: ReferDocumentFormValues
-) {
-  const user = await getCurrentUser();
-
-  if (!user) return { success: false, error: "Not authenticated" };
-
-  try {
-    const validatedFields = referDocumentSchema.safeParse(data);
-
-    if (!validatedFields.success) {
-      return {
-        success: false,
-        error: "Invalid fields " + validatedFields.error.message,
-        issues: validatedFields.error.errors,
-      };
-    }
-
-    const { documentId, departmentIds, message } = validatedFields.data;
-
-    // Use transaction to ensure all operations succeed or fail together
-    await prisma.$transaction(async (tx) => {
-      // Check if referring to the same department
-      for (const departmentId of departmentIds) {
-        const existingReferral = await tx.documentAssignment.findFirst({
-          where: { documentId, departmentId },
-        });
-
-        let referral;
-        if (!existingReferral) {
-          // Create new referral
-          referral = await tx.documentAssignment.create({
-            data: {
-              documentId,
-              departmentId,
-              message: message || "",
-            },
-          });
-        }
-        // Or you can update ...
-      }
-
-      // Update document status to REVIEW when referred to departments
-      await tx.document.update({
-        where: { id: documentId },
-        data: { status: { connect: { name: "REVIEW" } } },
-      });
-    });
-
-    return { success: true };
-  } catch (error) {
-    console.error("Error referring document to departments:", error);
-    return { success: false, error: "Error referring document to departments" };
-  }
-}
-
-/**
  * Update document scope
  */
 export async function updateDocumentScope(data: UpdateDocumentScopeFormValues) {
@@ -1036,249 +1103,5 @@ export async function updateDocumentScope(data: UpdateDocumentScopeFormValues) {
   } catch (error) {
     console.error("Error updating document scope:", error);
     return { success: false, error: "Error updating document scope" };
-  }
-}
-
-/**
- * Document communication
- */
-
-export async function sendDocumentMessage(data: SendDocumentMessageInput) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return { success: false, error: "Not authenticated" };
-  }
-  try {
-    const validatedData = sendDocumentMessageSchema.parse(data);
-
-    // check if occurrence status is not closed
-    const document = await prisma.document.findUnique({
-      where: { id: validatedData.documentId },
-      select: {
-        status: true,
-      },
-    });
-
-    if (
-      document?.status.name !== "REVIEW" &&
-      document?.status.name !== "PARTIAL_APPROVED"
-    ) {
-      return { success: false, error: "Document is not in review" };
-    }
-
-    // Create the message
-    const message = await prisma.documentMessage.create({
-      data: {
-        documentId: validatedData.documentId,
-        senderId: user.id,
-        recipientDepartmentId: null, // group message
-        message: validatedData.message,
-      },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            department: { select: { id: true, name: true } },
-          },
-        },
-      },
-    });
-
-    if (!user?.departmentId) {
-      return { success: false, error: "User not assigned to a department" };
-    }
-
-    // Send notifications for the new message
-    // await notifyDocumentMessage(
-    //   validatedData.documentId,
-    //   user.id,
-    //   validatedData.message
-    // );
-
-    // Get all assigned departments for this document
-    // const assignedDepartments = await prisma.documentAssignment.findMany({
-    //   where: { documentId: validatedData.documentId },
-    //   select: { departmentId: true },
-    // });
-    // const assignedDepartmentIds = assignedDepartments.map(
-    //   (a) => a.departmentId
-    // );
-
-    // For each assigned department, check if it has sent at least one message for this document
-    // const departmentsWithMessages = await prisma.documentMessage.findMany({
-    //   where: {
-    //     documentId: validatedData.documentId,
-    //     sender: {
-    //       departmentId: { in: assignedDepartmentIds },
-    //     },
-    //   },
-    //   select: { sender: { select: { departmentId: true } } },
-    // });
-    // const departmentsThatAnswered = new Set(
-    //   departmentsWithMessages.map((m) => m.sender.departmentId)
-    // );
-
-    // if (assignedDepartmentIds.length === 1) {
-    //   // Only one department assigned
-    //   if (departmentsThatAnswered.has(assignedDepartmentIds[0])) {
-    //     await prisma.document.update({
-    //       where: { id: validatedData.documentId },
-    //       data: { status: { connect: { name: "ANSWERED" } } },
-    //     });
-    //   }
-    // } else if (assignedDepartmentIds.length > 1) {
-    //   // More than one department assigned
-    //   if (departmentsThatAnswered.size < assignedDepartmentIds.length) {
-    //     await prisma.document.update({
-    //       where: { id: validatedData.documentId },
-    //       data: { status: { connect: { name: "ANSWERED_PARTIALLY" } } },
-    //     });
-    //   } else {
-    //     await prisma.document.update({
-    //       where: { id: validatedData.documentId },
-    //       data: { status: { connect: { name: "ANSWERED" } } },
-    //     });
-    //   }
-    // }
-
-    revalidatePath(`/documents/${validatedData.documentId}`);
-    return { success: true, message };
-  } catch (error) {
-    console.error("Error sending document message:", error);
-    if (error instanceof z.ZodError) {
-      return {
-        success: false,
-        error: "Validation failed",
-        issues: error.errors,
-      };
-    }
-    return { success: false, error: "Failed to send message" };
-  }
-}
-
-export async function getDocumentMessages(documentId: string) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return { success: false, error: "Not authenticated" };
-  }
-  try {
-    // Only show messages to users involved in the occurrence (QA or assigned departments)
-    // (Assume QA role is 'QUALITY_ASSURANCE')
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { departmentId: true, role: { select: { name: true } } },
-    });
-    if (!user) return { success: false, error: "User not found" };
-    // Check if user is QA or assigned department
-    let isAllowed = false;
-    if (user.role.name === "QUALITY_ASSURANCE" || user.role.name === "ADMIN") {
-      isAllowed = true;
-    } else if (user.departmentId) {
-      const assignment = await prisma.documentAssignment.findFirst({
-        where: { documentId, departmentId: user.departmentId },
-      });
-      if (assignment) isAllowed = true;
-    }
-    if (!isAllowed) return { success: false, error: "Not authorized" };
-    // Fetch all group messages for this occurrence
-    const messages = await prisma.documentMessage.findMany({
-      where: { documentId, recipientDepartmentId: null },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            department: { select: { id: true, name: true } },
-          },
-        },
-      },
-      orderBy: { createdAt: "asc" },
-    });
-    return { success: true, messages };
-  } catch (error) {
-    console.error("Error getting document messages:", error);
-    return { success: false, error: "Failed to get document messages" };
-  }
-}
-
-/**
- * Approve a document
- */
-export async function approveDocument(
-  documentId: string,
-  assignmentId: string[]
-) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return { success: false, error: "Not authenticated" };
-  }
-
-  try {
-    // Make sure all assigned departments have completed the reivew and approve
-    await prisma.$transaction(async (tx) => {
-      // Find the current document & current document version
-      const document = await tx.document.findFirst({
-        where: { id: documentId },
-        select: { currentVersionId: true },
-      });
-
-      if (!document || !document.currentVersionId) {
-        return { success: false, error: "Document not found" };
-      }
-
-      // Find Unique assignmentId by user departmentId
-      const assignment = await tx.documentAssignment.findFirst({
-        where: { documentId, departmentId: user.departmentId },
-      });
-
-      if (!assignment) {
-        return { success: false, error: "Assignment not found" };
-      }
-
-      // Update current assignment to completed
-      await tx.documentAssignment.update({
-        where: { id: assignment.id },
-        data: { isCompleted: true, completedAt: new Date() },
-      });
-
-      // Check if all assignments are completed
-      const assignments = await tx.documentAssignment.findMany({
-        where: { documentId, isCompleted: false },
-        select: { isCompleted: true },
-      });
-
-      // If all departments have completed the review and approve, update the document status to APPROVED, or update document to partial_approved if some approve it. also update current version to same state.
-      if (assignments.length === 0) {
-        await tx.document.update({
-          where: { id: documentId },
-          data: { status: { connect: { name: "APPROVED" } } },
-        });
-        await tx.documentVersion.update({
-          where: { id: document.currentVersionId },
-          data: { status: { connect: { name: "APPROVED" } } },
-        });
-        return { success: true, message: "Document approved" };
-      } else {
-        await tx.document.update({
-          where: { id: documentId },
-          data: { status: { connect: { name: "PARTIAL_APPROVED" } } },
-        });
-        await tx.documentVersion.update({
-          where: { id: document.currentVersionId },
-          data: { status: { connect: { name: "PARTIAL_APPROVED" } } },
-        });
-        return { success: true, message: "Document approved" };
-      }
-
-      return {
-        success: false,
-        error: "Not all departments have completed the review and approve",
-      };
-    });
-    return { success: true, message: "Document approved" };
-  } catch (error) {
-    console.error("Error approving document:", error);
-    return { success: false, error: "Error approving document: " + error };
   }
 }

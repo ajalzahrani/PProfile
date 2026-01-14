@@ -1,0 +1,661 @@
+"use client";
+
+import {
+  updatePersonProfile,
+  updateProfile,
+  updateProfileAction,
+} from "@/actions/profile";
+import { useState, useEffect } from "react";
+import { useForm, Controller, Form, SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { PageShell } from "@/components/page-shell";
+import { PageHeader } from "@/components/page-header";
+import { createPerson } from "@/actions/persons";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import {
+  personSchema,
+  type PersonFormValues,
+} from "@/actions/persons.validation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getItems } from "@/actions/refereces";
+import { DatePicker } from "@/components/ui/date-picker";
+
+interface ModelType {
+  id: string;
+  nameEn: string;
+  nameAr: string;
+}
+
+export function ProfileForm({ initialData, jobTitless }: any) {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [jobTitles, setJobTitles] = useState<ModelType[]>([]);
+  const [units, setUnits] = useState<ModelType[]>([]);
+  const [sponsors, setSponsors] = useState<ModelType[]>([]);
+  const [nationalities, setNationalities] = useState<ModelType[]>([]);
+  const [ranks, setRanks] = useState<ModelType[]>([]);
+
+  const form = useForm<PersonFormValues>({
+    resolver: zodResolver(personSchema),
+    defaultValues: {
+      userId: "cmk86pwth00089gtks3iuvq1j",
+      firstName: "",
+      secondName: "",
+      thirdName: "",
+      lastName: "",
+      gender: "Male",
+      dob: new Date(),
+      citizenship: "Civilian",
+      nationalityId: "",
+      noriqama: "",
+      mrn: "",
+      employeeNo: "",
+      unitId: "",
+      rankId: "",
+      jobTitleId: "",
+      sponsorId: "",
+      pictureLink: "",
+      cardExpiryAt: new Date(),
+      lastRenewalAt: undefined,
+      isActive: true,
+    },
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const jobTitles = await getItems("jobTitle");
+      setJobTitles(jobTitles.data);
+      const units = await getItems("unit");
+      setUnits(units.data);
+      const sponsors = await getItems("sponsor");
+      setSponsors(sponsors.data);
+      const nationalities = await getItems("nationality");
+      setNationalities(nationalities.data);
+      const ranks = await getItems("rank");
+      setRanks(ranks.data);
+    };
+    fetchData();
+  }, []);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+    control,
+    getValues,
+    watch,
+  } = form;
+
+  const citizenship = watch("citizenship");
+
+  const onSubmit: SubmitHandler<PersonFormValues> = async (data) => {
+    setIsSubmitting(true);
+
+    try {
+      // Get the file from the form
+      const form = document.querySelector("form");
+      const fileInput = form?.querySelector(
+        "input[type=file]"
+      ) as HTMLInputElement;
+
+      // Create a FormData object
+      const formData = new FormData();
+
+      // Append all form fields
+      Object.entries(data).forEach(([key, value]) => {
+        if (value instanceof Date) {
+          formData.append(key, value.toISOString());
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      // Append the file if it exists
+      if (fileInput?.files?.[0]) {
+        formData.append("file", fileInput.files[0]);
+      }
+
+      console.log("Submitting form data...", formData);
+      const result = await updatePersonProfile(formData);
+      console.log("Submission result:", result);
+
+      if (result.success) {
+        toast({
+          title: "Person created successfully",
+        });
+        router.push("/persons");
+      } else {
+        toast({
+          title: "Failed to create person",
+          description: result.error,
+        });
+      }
+    } catch (error) {
+      console.error("Error creating person:", error);
+      toast({
+        title: "Failed to create person",
+        description: "Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // const [loading, setLoading] = useState(false);
+
+  // async function handleSubmit(formData: FormData) {
+  //   setLoading(true);
+  //   const result = await updateProfileAction(formData);
+  //   setLoading(false);
+
+  //   if (result.success) {
+  //     toast({
+  //       title: "Profile Updated",
+  //       description: "Your information has been saved.",
+  //     });
+  //   } else {
+  //     toast({
+  //       title: "Error",
+  //       description: result.error + " what is this?",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // }
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName[0]}${lastName[0]}`.toUpperCase();
+  };
+
+  return (
+    <PageShell>
+      {/* <PageHeader
+        heading="Person Registration"
+        text="Create a new person"></PageHeader> */}
+      {/* <form
+        action={handleSubmit}
+        className="space-y-6 bg-card p-6 border rounded-xl shadow-sm">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">First Name</label>
+            <input
+              name="firstName"
+              defaultValue={initialData?.firstName}
+              value={"Abdulrahman"}
+              required
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Last Name</label>
+            <input
+              name="lastName"
+              defaultValue={initialData?.lastName}
+              value={"Alzahrani"}
+              required
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            Professional Role (Job Title)
+          </label>
+          <select
+            name="jobTitleId"
+            defaultValue={initialData?.jobTitleId}
+            required
+            className="w-full p-2 border rounded-md">
+            <option value="">Select Role...</option>
+            {jobTitles.map((job: any) => (
+              <option key={job.id} value={job.id}>
+                {job.nameEn}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Mobile Number</label>
+          <input
+            name="mobileNumber"
+            defaultValue={initialData?.mobileNumber}
+            value={"+966500332788"}
+            placeholder="+966..."
+            className="w-full p-2 border rounded-md"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Date of Birth</label>
+            <input
+              name="dob"
+              type="date"
+              defaultValue={initialData?.dob?.toISOString().split("T")[0]}
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Citizenship</label>
+            <input
+              name="citizenship"
+              value={"Yammen"}
+              defaultValue={initialData?.citizenship}
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-primary text-primary-foreground py-2 rounded-md hover:bg-primary/90 disabled:opacity-50">
+          {loading ? "Saving..." : "Save Profile Information"}
+        </button>
+      </form> */}
+      <form
+        onSubmit={handleSubmit(
+          (data) => {
+            console.log("Form submitted with data:", data);
+            return onSubmit(data);
+          },
+          (errors) => {
+            console.log("Form validation errors:", errors);
+          }
+        )}
+        className="flex flex-row space-x-6 gap-6">
+        {/* <Card>
+          <CardHeader>
+            <CardTitle>Picture</CardTitle>
+            <CardDescription>Upload a picture of the person</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center">
+            <div className="flex flex-col items-center gap-4">
+              <Avatar className="h-32 w-32">
+                <AvatarImage
+                  src={previewUrl || undefined}
+                  alt={`${getValues("firstName")} ${getValues("lastName")}`}
+                />
+                <AvatarFallback className="text-2xl">
+                  {getInitials(
+                    getValues("firstName") || "",
+                    getValues("lastName") || ""
+                  )}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          </CardContent>
+        </Card> */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Person Details</CardTitle>
+            <CardDescription>
+              Provide details about the occurrence that occurred
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              {/* First Row */}
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  {...register("firstName")}
+                  placeholder="Enter first name"
+                  className="mt-1"
+                />
+                {errors.firstName && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.firstName.message}
+                  </p>
+                )}
+              </div>
+
+              {/* <div className="space-y-2">
+                <Label htmlFor="secondName">Second Name</Label>
+                <Input
+                  id="secondName"
+                  {...register("secondName")}
+                  placeholder="Enter second name"
+                  className="mt-1"
+                />
+                {errors.secondName && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.secondName.message}
+                  </p>
+                )}
+              </div> */}
+
+              {/* <div className="space-y-2">
+                <Label htmlFor="thirdName">Third Name</Label>
+                <Input
+                  id="thirdName"
+                  {...register("thirdName")}
+                  placeholder="Enter third name"
+                  className="mt-1"
+                />
+                {errors.thirdName && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.thirdName.message}
+                  </p>
+                )}
+              </div> */}
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  {...register("lastName")}
+                  placeholder="Enter last name"
+                  className="mt-1"
+                />
+                {errors.lastName && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.lastName.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Second Row */}
+              <div className="space-y-2">
+                <Label htmlFor="dob">Date of Birth</Label>
+                <Controller
+                  name="dob"
+                  control={control}
+                  render={({ field }) => (
+                    <DatePicker
+                      date={field.value || new Date()}
+                      setDate={field.onChange}
+                    />
+                  )}
+                />
+                {errors.dob && (
+                  <p className="text-sm text-red-500">{errors.dob.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="gender">Gender</Label>
+                <Controller
+                  name="gender"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent className="">
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.gender && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.gender.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="jobTitle">Job Title</Label>
+                <Controller
+                  name="jobTitleId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select job title" />
+                      </SelectTrigger>
+                      <SelectContent className="">
+                        {jobTitles.map((jobTitle) => (
+                          <SelectItem key={jobTitle.id} value={jobTitle.id}>
+                            {jobTitle.nameEn}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.jobTitleId && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.jobTitleId.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="citizenship">Citizenship</Label>
+                <Controller
+                  name="citizenship"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select citizenship" />
+                      </SelectTrigger>
+                      <SelectContent className="">
+                        <SelectItem value="Civilian">Civilian</SelectItem>
+                        <SelectItem value="Foreigner">Foreigner</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.citizenship && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.citizenship.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="noriqama">National / Iqama Number</Label>
+                <Input
+                  id="noriqama"
+                  {...register("noriqama")}
+                  placeholder="Enter national/iqama number"
+                  className="mt-1"
+                />
+                {errors.noriqama && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.noriqama.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="nationality">Nationality</Label>
+                <Controller
+                  name="nationalityId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select nationality" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {nationalities.map((nationality) => (
+                          <SelectItem
+                            key={nationality.id}
+                            value={nationality.id}>
+                            {nationality.nameEn}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.nationalityId && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.nationalityId.message}
+                  </p>
+                )}
+              </div>
+
+              {citizenship === "Foreigner" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="sponsor">Sponsor</Label>
+                    <Controller
+                      name="sponsorId"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select sponsor" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {sponsors.map((sponsor) => (
+                              <SelectItem key={sponsor.id} value={sponsor.id}>
+                                {sponsor.nameAr}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.sponsorId && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.sponsorId.message}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {citizenship === "Other" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="mrn">MRN</Label>
+                    <Input
+                      id="mrn"
+                      {...register("mrn")}
+                      placeholder="Enter mrn"
+                      className="mt-1"
+                    />
+                    {errors.mrn && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.mrn.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="rank">Rank</Label>
+                    <Controller
+                      name="rankId"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select rank" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ranks.map((rank) => (
+                              <SelectItem key={rank.id} value={rank.id}>
+                                {rank.nameAr}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.rankId && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.rankId.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="unit">Unit</Label>
+                    <Controller
+                      name="unitId"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select unit" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {units.map((unit) => (
+                              <SelectItem key={unit.id} value={unit.id}>
+                                {unit.nameAr}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.unitId && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.unitId.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="employeeNo">Employee Number</Label>
+                    <Input
+                      id="employeeNo"
+                      {...register("employeeNo")}
+                      placeholder="Enter employee number"
+                      className="mt-1"
+                    />
+                    {errors.employeeNo && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.employeeNo.message}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end gap-2">
+            <div>
+              <Button
+                variant="outline"
+                onClick={() => router.back()}
+                className="mr-2">
+                Cancel
+              </Button>
+            </div>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Creating..." : "Create Person"}
+            </Button>
+          </CardFooter>
+        </Card>
+      </form>
+    </PageShell>
+  );
+}

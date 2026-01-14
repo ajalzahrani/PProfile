@@ -173,41 +173,38 @@ async function main() {
     },
   });
 
-  await prisma.documentCategory.upsert({
-    where: { name: "HR" },
-    update: {
-      name: "HR",
-      description: "Human Resources",
+  const nationalities = [
+    {
+      nameEn: "Saudi",
+      nameAr: "سعودي",
     },
-    create: {
-      name: "HR",
-      description: "Human Resources",
+    {
+      nameEn: "Egyptian",
+      nameAr: "مصري",
     },
-  });
+    {
+      nameEn: "American",
+      nameAr: "أمريكي",
+    },
+    {
+      nameEn: "Indian",
+      nameAr: "هندي",
+    },
+  ];
 
-  await prisma.documentCategory.upsert({
-    where: { name: "Legal" },
-    update: {
-      name: "Legal",
-      description: "Legal",
-    },
-    create: {
-      name: "Legal",
-      description: "Legal",
-    },
-  });
+  console.log("Creating nationalities...");
+  const createdNationalities = [];
 
-  await prisma.documentCategory.upsert({
-    where: { name: "PPG" },
-    update: {
-      name: "PPG",
-      description: "PPG",
-    },
-    create: {
-      name: "PPG",
-      description: "PPG",
-    },
-  });
+  for (const nationality of nationalities) {
+    const createdNationality = await prisma.nationality.upsert({
+      where: { nameEn: nationality.nameEn },
+      update: nationality,
+      create: nationality,
+    });
+    createdNationalities.push(createdNationality);
+  }
+
+  console.log("Nationalities created successfully");
 
   const statusDraft = await prisma.documentStatus.upsert({
     where: { name: "DRAFT" },

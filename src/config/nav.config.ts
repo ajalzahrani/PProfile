@@ -17,6 +17,16 @@ export const NAV_ITEMS: NavItem[] = [
   },
 
   {
+    label: "User Documents",
+    href: "/user-documents",
+    requiredPermissions: ["manage:documents"],
+  },
+  {
+    label: "User Profile",
+    href: "/person-profile",
+    requiredPermissions: ["manage:documents"],
+  },
+  {
     label: "Documents",
     href: "/documents",
     requiredPermissions: ["manage:documents"],

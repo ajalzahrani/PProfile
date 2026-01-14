@@ -58,10 +58,6 @@ export async function POST(req: NextRequest) {
       categoryId: categoryIdRaw.trim() ? categoryIdRaw : undefined,
       description: (formData.get("description") as string) || undefined,
       departmentIds: parseDepartmentIds() || [],
-      isOrganizationWide: JSON.parse(
-        (formData.get("isOrganizationWide") as string) ?? "false"
-      ),
-      tags: JSON.parse((formData.get("tags") as string) ?? "[]") || [],
       isArchived: JSON.parse((formData.get("isArchived") as string) ?? "false"),
       expirationDate: formData.get("expirationDate") as string,
       changeNote: (formData.get("changeNote") as string) || undefined,
@@ -104,7 +100,6 @@ export async function POST(req: NextRequest) {
 
     const result = await createDocumentWithVersion({
       ...validation.data,
-      tags: validation.data.tags || [],
       isArchived: validation.data.isArchived || false,
       fileName: file.name,
       fileBuffer: buffer,

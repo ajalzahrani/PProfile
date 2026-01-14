@@ -74,9 +74,9 @@ export default function EditDepartmentPage({
       title: "",
       categoryId: undefined,
       departmentIds: [],
-      isOrganizationWide: false,
+
       description: "",
-      tags: [],
+
       isArchived: false,
       expirationDate: undefined,
       changeNote: "",
@@ -95,14 +95,6 @@ export default function EditDepartmentPage({
   const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
     setTagsInput(inputValue);
-
-    const tagsArray = inputValue
-      ? inputValue
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter(Boolean)
-      : [];
-    setValue("tags", tagsArray);
   };
 
   const onSubmit = async (data: DocumentFormValues) => {
@@ -125,8 +117,6 @@ export default function EditDepartmentPage({
             description: data.description ?? "",
             categoryId: data.categoryId,
             departmentIds: data.departmentIds,
-            isOrganizationWide: data.isOrganizationWide,
-            tags: data.tags,
             isArchived: data.isArchived,
             expirationDate: data.expirationDate?.toISOString() as string,
             changeNote: data.changeNote,
@@ -176,12 +166,9 @@ export default function EditDepartmentPage({
     }
     formData.append("title", data.title as string);
     formData.append("description", data.description as string);
-    formData.append("tags", JSON.stringify(data.tags));
+
     formData.append("departmentIds", JSON.stringify(data.departmentIds));
-    formData.append(
-      "isOrganizationWide",
-      JSON.stringify(data.isOrganizationWide)
-    );
+
     if (data.categoryId) {
       formData.append("categoryId", data.categoryId as string);
     }
@@ -303,14 +290,8 @@ export default function EditDepartmentPage({
         setSelectedCategory(document.categoryId ?? undefined);
         setValue("categoryId", document.categoryId ?? "");
         setValue("description", document.description ?? "");
-        setValue(
-          "tags",
-          document.tags.map((tag) => tag.trim())
-        );
         setTagsInput(document.tags.join(", "));
         setValue("isArchived", document.isArchived);
-        setValue("isOrganizationWide", document.isOrganizationWide);
-        setIsOrganizationWide(document.isOrganizationWide);
         setValue("expirationDate", currentVersion?.expirationDate ?? undefined);
         setFilePreviewUrl(currentVersion?.filePath ?? null);
         setValue("changeNote", currentVersion?.changeNote ?? "");
@@ -436,97 +417,6 @@ export default function EditDepartmentPage({
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor="isOrganizationWide"
-                    className="cursor-pointer">
-                    Organization Wide Access
-                  </Label>
-                  <input
-                    type="checkbox"
-                    id="isOrganizationWide"
-                    checked={isOrganizationWide}
-                    onChange={(e) => {
-                      setIsOrganizationWide(e.target.checked);
-                      setValue("isOrganizationWide", e.target.checked);
-                      if (e.target.checked) {
-                        setSelectedDepartments([]);
-                        setValue("departmentIds", []);
-                      }
-                    }}
-                    className="h-4 w-4"
-                  />
-                </div>
-                {errors.isOrganizationWide && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.isOrganizationWide.message}
-                  </p>
-                )}
-              </div>
-
-              {!isOrganizationWide && (
-                <div className="space-y-2">
-                  <Label htmlFor="departments">Departments</Label>
-                  <Select
-                    value=""
-                    onValueChange={(value) => {
-                      if (value && !selectedDepartments.includes(value)) {
-                        const newDepartments = [...selectedDepartments, value];
-                        setSelectedDepartments(newDepartments);
-                        setValue("departmentIds", newDepartments);
-                      }
-                    }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select departments" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {departments
-                        .filter(
-                          (dept) => !selectedDepartments.includes(dept.id)
-                        )
-                        .map((department) => (
-                          <SelectItem key={department.id} value={department.id}>
-                            {department.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  {selectedDepartments.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {selectedDepartments.map((deptId) => {
-                        const dept = departments.find((d) => d.id === deptId);
-                        return (
-                          <span
-                            key={deptId}
-                            className="inline-flex items-center px-2 py-1 rounded-md bg-blue-100 text-blue-800 text-sm">
-                            {dept?.name}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newDepartments =
-                                  selectedDepartments.filter(
-                                    (id) => id !== deptId
-                                  );
-                                setSelectedDepartments(newDepartments);
-                                setValue("departmentIds", newDepartments);
-                              }}
-                              className="ml-1 text-blue-600 hover:text-blue-800">
-                              ×
-                            </button>
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
-                  {errors.departmentIds && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.departmentIds.message}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <div className="space-y-2">
                 <Label htmlFor="title">Document Title</Label>
                 <Input
                   id="title"
@@ -570,21 +460,6 @@ export default function EditDepartmentPage({
                 {errors.expirationDate && (
                   <p className="text-sm text-red-500">
                     {String(errors.expirationDate.message)}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tags">Tags (comma-separated)</Label>
-                <Input
-                  id="tags"
-                  value={tagsInput}
-                  onChange={handleTagsChange}
-                  placeholder="tag1, tag2, tag3"
-                  className="mt-1"
-                />
-                {errors.tags && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.tags.message}
                   </p>
                 )}
               </div>

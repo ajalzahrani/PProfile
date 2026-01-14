@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useFormState } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -30,41 +30,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DocumentScopeDialog } from "../components/document-scope";
+import { uploadCertificateAction } from "@/actions/documents";
+import { CertificateUploadForm } from "../components/certificate-upload-form";
 
 export default function NewDocumentPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [tagsInput, setTagsInput] = useState("");
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
-    []
-  );
-  const [departments, setDepartments] = useState<
-    { id: string; name: string }[]
-  >([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(
-    undefined
-  );
-  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
-  const [isOrganizationWide, setIsOrganizationWide] = useState(false);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const { success, categories } = await getCategoriesForSelect();
-      if (success) {
-        setCategories(categories ?? []);
-      }
-    };
-    const fetchDepartments = async () => {
-      const { success, departments } = await getDepartmentsForSelect();
-      if (success) {
-        setDepartments(departments ?? []);
-      }
-    };
-    fetchCategories();
-    fetchDepartments();
-  }, []);
 
   const {
     register,
@@ -78,9 +51,7 @@ export default function NewDocumentPage() {
       title: "",
       categoryId: undefined,
       departmentIds: [],
-      isOrganizationWide: false,
       description: "",
-      tags: [],
       isArchived: false,
       documentStatus: "DRAFT",
       expirationDate: undefined,
@@ -97,35 +68,45 @@ export default function NewDocumentPage() {
     };
   }, [filePreviewUrl]);
 
-  const handleDepartmentChange = (departmentIds: string[]) => {
-    setSelectedDepartments(departmentIds);
-    setValue("departmentIds", departmentIds);
-  };
-
-  const handleOrganizationWideChange = (isOrgWide: boolean) => {
-    setIsOrganizationWide(isOrgWide);
-    setValue("isOrganizationWide", isOrgWide);
-    if (isOrgWide) {
-      // Clear selected departments when organization-wide is enabled
-      setSelectedDepartments([]);
-      setValue("departmentIds", []);
-    }
-  };
-
-  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    setTagsInput(inputValue);
-
-    const tagsArray = inputValue
-      ? inputValue
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter(Boolean)
-      : [];
-    setValue("tags", tagsArray);
-  };
-
   const onSubmit = async (data: DocumentFormValues) => {
+    setIsSubmitting(true);
+
+    if (!selectedFile) {
+      toast({ title: "Please select a PDF file", variant: "destructive" });
+      setIsSubmitting(false);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("title", data.title);
+    formData.append("categoryId", data.categoryId ?? "");
+    formData.append("description", data.description ?? "");
+    formData.append("departmentIds", JSON.stringify(data.departmentIds ?? []));
+    formData.append("isArchived", JSON.stringify(data.isArchived));
+
+    if (data.expirationDate) {
+      formData.append("expirationDate", data.expirationDate.toISOString());
+    }
+
+    // CALL THE SERVER ACTION
+    const result = await uploadCertificateAction(null, formData);
+
+    if (result.success) {
+      toast({ title: "Success", description: result.message });
+      router.push("/documents");
+    } else {
+      toast({
+        title: "Upload Failed",
+        description: result.error,
+        variant: "destructive",
+      });
+    }
+
+    setIsSubmitting(false);
+  };
+
+  const onSubmit2 = async (data: DocumentFormValues) => {
     setIsSubmitting(true);
 
     if (!selectedFile) {
@@ -142,12 +123,7 @@ export default function NewDocumentPage() {
 
     // Append departmentIds as JSON for multi-select
     formData.append("departmentIds", JSON.stringify(data.departmentIds ?? []));
-    formData.append(
-      "isOrganizationWide",
-      JSON.stringify(data.isOrganizationWide)
-    );
 
-    formData.append("tags", JSON.stringify(data.tags));
     if (data.expirationDate) {
       formData.append("expirationDate", data.expirationDate.toISOString());
     }
@@ -276,7 +252,12 @@ export default function NewDocumentPage() {
 
         {/* Form - 1/3 width */}
         <div className="w-1/3 p-6 overflow-y-auto">
-          <form
+          <CertificateUploadForm
+            categoryId={"categoryId"}
+            categoryName={"categoryName"}
+            requiresExpiry={true}
+          />
+          {/* <form
             onSubmit={handleSubmit(onSubmit)}
             encType="multipart/form-data"
             className="space-y-8">
@@ -370,48 +351,7 @@ export default function NewDocumentPage() {
                   </p>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="documentScope">Document Scope</Label>
-                <DocumentScopeDialog
-                  departments={departments ?? []}
-                  selectedDepartmentIds={selectedDepartments}
-                  setSelectedDepartmentIds={handleDepartmentChange}
-                  isOrganizationWide={isOrganizationWide}
-                  setIsOrganizationWide={handleOrganizationWideChange}
-                />
-                {isOrganizationWide ? (
-                  <p className="mt-1 text-sm text-blue-600">
-                    Organization-wide access enabled
-                  </p>
-                ) : (
-                  selectedDepartments.length > 0 && (
-                    <p className="mt-1 text-sm text-gray-500">
-                      {selectedDepartments.length} departments selected
-                    </p>
-                  )
-                )}
-                {errors.departmentIds && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.departmentIds.message}
-                  </p>
-                )}
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="tags">Tags (comma-separated)</Label>
-                <Input
-                  id="tags"
-                  value={tagsInput}
-                  onChange={handleTagsChange}
-                  placeholder="tag1, tag2, tag3"
-                  className="mt-1"
-                />
-                {errors.tags && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.tags.message}
-                  </p>
-                )}
-              </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="isArchived" className="cursor-pointer">
@@ -436,7 +376,7 @@ export default function NewDocumentPage() {
                 {isSubmitting ? "Creating..." : "Create Document"}
               </Button>
             </div>
-          </form>
+          </form> */}
         </div>
       </div>
     </div>
