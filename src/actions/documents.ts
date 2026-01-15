@@ -470,6 +470,11 @@ export async function uploadCertificateAction(
     const expirationDateStr = formData.get("expirationDate") as string;
     const departmentIdsRaw = formData.get("departmentIds") as string;
     const isArchived = formData.get("isArchived") === "true";
+    const documentStatus = await prisma.documentStatus.findMany({
+      where: {
+        name: "DRAFT",
+      },
+    });
 
     if (!file || !categoryId) {
       return {
@@ -524,13 +529,13 @@ export async function uploadCertificateAction(
         data: {
           title,
           description,
-          isArchived,
-          createdBy: user.id,
-          categoryId: categoryId,
-          status: { connect: { name: "Submitted" } },
           departments: {
             connect: departmentIds.map((id: string) => ({ id })),
           },
+          status: { connect: { id: documentStatus[0].id } },
+          isArchived,
+          category: { connect: { id: categoryId } },
+          creator: { connect: { id: user.id } },
         },
       });
       documentId = newDoc.id;
@@ -545,7 +550,7 @@ export async function uploadCertificateAction(
       user.id,
       existingDoc ? "Renewed Certificate" : "Initial Certificate Upload",
       expirationDateStr ? new Date(expirationDateStr) : null,
-      "Submitted"
+      documentStatus[0].name
     );
 
     if (!versionResult.success) {

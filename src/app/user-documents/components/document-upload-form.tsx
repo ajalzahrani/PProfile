@@ -49,6 +49,11 @@ export function DocumentUploadForm({
         <h3 className="font-semibold text-lg mb-2">{categoryName}</h3>
 
         <form action={action} className="space-y-4">
+          <input
+            type="hidden"
+            name="title"
+            value={categoryName + "_" + categoryId}
+          />
           <input type="hidden" name="categoryId" value={categoryId} />
 
           {/* File Input */}
