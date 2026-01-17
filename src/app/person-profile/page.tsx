@@ -5,6 +5,8 @@ import { getItems } from "@/actions/refereces";
 import { getPersonById } from "@/actions/persons";
 import { PersonFormValues } from "@/actions/persons.validation";
 import { checkServerPermission } from "@/lib/server-permissions";
+import { PageHeader } from "@/components/page-header";
+import { PageShell } from "@/components/page-shell";
 
 export default async function PersonProfilePage() {
   await checkServerPermission("manage:profiles");
@@ -14,15 +16,6 @@ export default async function PersonProfilePage() {
   if (!user) {
     return;
   }
-
-  // const person = await prisma.person.findFirst({
-  //   where: { userId: user?.id },
-  //   include: { jobTitle: true },
-  // });
-
-  // const jobTitles = await prisma.jobTitle.findMany({
-  //   select: { id: true, nameEn: true },
-  // });
 
   const personResult = await getPersonById(user.id);
 
@@ -76,13 +69,10 @@ export default async function PersonProfilePage() {
   ]);
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">Personal Information</h1>
-        <p className="text-muted-foreground">
-          Please provide your professional details to complete registration.
-        </p>
-      </div>
+    <PageShell>
+      <PageHeader
+        heading="Profile Update"
+        text="Update your personal information"></PageHeader>
       <ProfileForm
         initialData={personObject}
         jobTitles={jobTitles.data}
@@ -91,6 +81,6 @@ export default async function PersonProfilePage() {
         nationalities={nationalities.data}
         ranks={ranks.data}
       />
-    </div>
+    </PageShell>
   );
 }

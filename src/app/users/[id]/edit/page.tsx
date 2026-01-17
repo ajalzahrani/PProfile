@@ -17,7 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { RoleFormValues } from "@/actions/roles.validation";
 import { DepartmentFormValues } from "@/actions/departments.validation";
-import { ArrowLeft, Building2 } from "lucide-react";
+import { ArrowLeft, Building2, ShieldCheck, Key } from "lucide-react";
 import Link from "next/link";
 import {
   UserFormValuesWithRolesAndDepartments,
@@ -72,6 +72,7 @@ export default function EditUserPage({
   // Watch role and department values
   const selectedRole = watch("role");
   const selectedDepartment = watch("department");
+  const password = watch("password");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -223,14 +224,31 @@ export default function EditUserPage({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              {...register("password")}
-              placeholder="Enter new password (leave blank to keep current)"
-              className="mt-1"
-            />
+            <Label>Password</Label>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const defaultPassword = "adminpassword";
+                  setValue("password", defaultPassword);
+                  toast({
+                    title: "Password Set",
+                    description:
+                      "Default password has been set. User should change it on first login.",
+                  });
+                }}
+                className="flex items-center gap-2">
+                <Key className="h-4 w-4" />
+                Set Default Password
+              </Button>
+              {/** Check if password is set then show the shield check icon */}
+              {password && <ShieldCheck className="h-4 w-4 text-green-500" />}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Click to set a default password. User should change it on first
+              login.
+            </p>
             {errors.password && (
               <p className="mt-1 text-sm text-red-500">
                 {errors.password.message}
