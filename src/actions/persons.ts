@@ -47,7 +47,7 @@ export async function getPersonById(personId: string) {
 
   try {
     const person = await prisma.person.findUnique({
-      where: { id: personId },
+      where: { userId: personId },
       include: {
         nationality: true,
         jobTitle: true,

@@ -1,10 +1,5 @@
 "use client";
 
-import {
-  updatePersonProfile,
-  updateProfile,
-  updateProfileAction,
-} from "@/actions/profile";
 import { useState, useEffect } from "react";
 import { useForm, Controller, Form, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,8 +33,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getItems } from "@/actions/refereces";
 import { DatePicker } from "@/components/ui/date-picker";
+import { updatePersonProfile } from "@/actions/profile";
 
 interface ModelType {
   id: string;
@@ -47,20 +42,29 @@ interface ModelType {
   nameAr: string;
 }
 
-export function ProfileForm({ initialData, jobTitless }: any) {
+export function ProfileForm({
+  initialData,
+  jobTitles,
+  units,
+  sponsors,
+  nationalities,
+  ranks,
+}: {
+  initialData?: PersonFormValues | null;
+  jobTitles: ModelType[];
+  units: ModelType[];
+  sponsors: ModelType[];
+  nationalities: ModelType[];
+  ranks: ModelType[];
+}) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [jobTitles, setJobTitles] = useState<ModelType[]>([]);
-  const [units, setUnits] = useState<ModelType[]>([]);
-  const [sponsors, setSponsors] = useState<ModelType[]>([]);
-  const [nationalities, setNationalities] = useState<ModelType[]>([]);
-  const [ranks, setRanks] = useState<ModelType[]>([]);
 
   const form = useForm<PersonFormValues>({
     resolver: zodResolver(personSchema),
     defaultValues: {
-      userId: "cmk86pwth00089gtks3iuvq1j",
+      userId: "",
       firstName: "",
       secondName: "",
       thirdName: "",
@@ -68,13 +72,13 @@ export function ProfileForm({ initialData, jobTitless }: any) {
       gender: "Male",
       dob: new Date(),
       citizenship: "Civilian",
-      nationalityId: "",
+      nationalityId: undefined,
       noriqama: "",
       mrn: "",
       employeeNo: "",
       unitId: "",
       rankId: "",
-      jobTitleId: "",
+      jobTitleId: undefined,
       sponsorId: "",
       pictureLink: "",
       cardExpiryAt: new Date(),
@@ -84,20 +88,16 @@ export function ProfileForm({ initialData, jobTitless }: any) {
   });
 
   useEffect(() => {
-    const fetchData = async () => {
-      const jobTitles = await getItems("jobTitle");
-      setJobTitles(jobTitles.data);
-      const units = await getItems("unit");
-      setUnits(units.data);
-      const sponsors = await getItems("sponsor");
-      setSponsors(sponsors.data);
-      const nationalities = await getItems("nationality");
-      setNationalities(nationalities.data);
-      const ranks = await getItems("rank");
-      setRanks(ranks.data);
-    };
-    fetchData();
-  }, []);
+    if (!initialData) return;
+    if (!jobTitles.length) return;
+    if (!nationalities) return;
+
+    form.reset({
+      ...initialData,
+      jobTitleId: initialData.jobTitleId || undefined,
+      nationalityId: initialData.nationalityId || undefined,
+    });
+  }, [initialData, jobTitles.length, form]);
 
   const {
     register,
@@ -428,12 +428,15 @@ export function ProfileForm({ initialData, jobTitless }: any) {
                   name="jobTitleId"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      key={`${field.value}-${jobTitles.length}`}
+                      onValueChange={field.onChange}
+                      value={field.value ?? undefined}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select job title" />
                       </SelectTrigger>
                       <SelectContent className="">
-                        {jobTitles.map((jobTitle) => (
+                        {jobTitles.map((jobTitle: ModelType) => (
                           <SelectItem key={jobTitle.id} value={jobTitle.id}>
                             {jobTitle.nameEn}
                           </SelectItem>
@@ -495,12 +498,15 @@ export function ProfileForm({ initialData, jobTitless }: any) {
                   name="nationalityId"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      key={`${field.value}-${nationalities.length}`}
+                      onValueChange={field.onChange}
+                      value={field.value ?? undefined}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select nationality" />
                       </SelectTrigger>
                       <SelectContent>
-                        {nationalities.map((nationality) => (
+                        {nationalities.map((nationality: ModelType) => (
                           <SelectItem
                             key={nationality.id}
                             value={nationality.id}>
@@ -528,12 +534,12 @@ export function ProfileForm({ initialData, jobTitless }: any) {
                       render={({ field }) => (
                         <Select
                           onValueChange={field.onChange}
-                          value={field.value}>
+                          value={field.value ?? undefined}>
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select sponsor" />
                           </SelectTrigger>
                           <SelectContent>
-                            {sponsors.map((sponsor) => (
+                            {sponsors.map((sponsor: ModelType) => (
                               <SelectItem key={sponsor.id} value={sponsor.id}>
                                 {sponsor.nameAr}
                               </SelectItem>
@@ -575,12 +581,12 @@ export function ProfileForm({ initialData, jobTitless }: any) {
                       render={({ field }) => (
                         <Select
                           onValueChange={field.onChange}
-                          value={field.value}>
+                          value={field.value || undefined}>
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select rank" />
                           </SelectTrigger>
                           <SelectContent>
-                            {ranks.map((rank) => (
+                            {ranks.map((rank: ModelType) => (
                               <SelectItem key={rank.id} value={rank.id}>
                                 {rank.nameAr}
                               </SelectItem>
@@ -603,12 +609,12 @@ export function ProfileForm({ initialData, jobTitless }: any) {
                       render={({ field }) => (
                         <Select
                           onValueChange={field.onChange}
-                          value={field.value}>
+                          value={field.value || undefined}>
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select unit" />
                           </SelectTrigger>
                           <SelectContent>
-                            {units.map((unit) => (
+                            {units.map((unit: ModelType) => (
                               <SelectItem key={unit.id} value={unit.id}>
                                 {unit.nameAr}
                               </SelectItem>

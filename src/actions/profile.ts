@@ -14,6 +14,16 @@ export async function updatePersonProfile(formData: FormData) {
     return { success: false, error: "Unauthorized" };
   }
 
+  // Check if user already has a person profile
+  const existingPerson = await prisma.person.findFirst({
+    where: { userId: session.user.id as string },
+  });
+
+  if (existingPerson) {
+    // Update existing profile
+    return { success: false, error: "Person already has profile" };
+  }
+
   const dobValue = formData.get("dob");
 
   if (!dobValue) {
@@ -48,7 +58,7 @@ export async function updatePersonProfile(formData: FormData) {
 
   if (!validatedFields.success) {
     console.error("Validation errors:", validatedFields.error);
-    return { success: false, error: "Invalid fields" };
+    return { success: false, error: "Invalid fields" + validatedFields.error };
   }
 
   try {

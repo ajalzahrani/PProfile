@@ -9,9 +9,10 @@ import { checkServerPermission } from "@/lib/server-permissions";
 import { PermissionCheck } from "@/components/auth/permission-check";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
+import { RedirectButton } from "@/components/redirect-button";
 
 export default async function DocumentsPage() {
-  await checkServerPermission("manage:user-documents");
+  await checkServerPermission("manage:compliance-documents");
 
   const session = await getServerSession(authOptions);
 
@@ -23,7 +24,19 @@ export default async function DocumentsPage() {
   const userDocuments = await getUserComplianceStatus(session.user.id);
 
   if (userDocuments.length === 0) {
-    return <div>No required certificates found for your job title.</div>;
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
+        <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
+          <h1 className="text-4xl font-bold tracking-tight">
+            Unauthorized Access
+          </h1>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Please update your profile.
+          </p>
+          <RedirectButton message={"Go to profile"} path={"/person-profile"} />
+        </div>
+      </div>
+    );
   }
 
   //   if (!documents.success) {

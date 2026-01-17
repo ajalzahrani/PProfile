@@ -26,7 +26,7 @@ const getModel = (model: ModelType): PrismaModel => {
 };
 
 export async function getItems(model: ModelType): Promise<returnType> {
-  await checkServerPermission(model + ":read");
+  // await checkServerPermission(model + ":read");
   const items = await getModel(model).findMany();
   return { success: true, data: items };
 }

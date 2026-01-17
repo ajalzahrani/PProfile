@@ -17,14 +17,14 @@ export const NAV_ITEMS: NavItem[] = [
   },
 
   {
-    label: "User Documents",
+    label: "Compliance Documents",
     href: "/user-documents",
-    requiredPermissions: ["manage:documents"],
+    requiredPermissions: ["manage:compliance-documents"],
   },
   {
-    label: "User Profile",
+    label: "Profile",
     href: "/person-profile",
-    requiredPermissions: ["manage:documents"],
+    requiredPermissions: ["manage:profiles"],
   },
   {
     label: "Documents",
