@@ -31,33 +31,13 @@ export default async function DocumentsPage() {
             Unauthorized Access
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Please update your profile.
+            Please update your profile first.
           </p>
           <RedirectButton message={"Go to profile"} path={"/person-profile"} />
         </div>
       </div>
     );
   }
-
-  //   if (!documents.success) {
-  //     return (
-  //       <div className="flex h-screen w-screen items-center justify-center bg-background">
-  //         <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
-  //           <h1 className="text-4xl font-bold tracking-tight">
-  //             No documents found
-  //           </h1>
-  //           <p className="mt-4 text-lg text-muted-foreground rounded-md p-4">
-  //             <Link href="/documents/new">
-  //               <Button>
-  //                 <PlusCircle className="mr-2 h-4 w-4" />
-  //                 Create New Document
-  //               </Button>
-  //             </Link>
-  //           </p>
-  //         </div>
-  //       </div>
-  //     );
-  //   }
 
   return (
     <PageShell>

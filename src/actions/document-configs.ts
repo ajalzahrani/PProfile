@@ -29,19 +29,19 @@ export async function updateCertificateRequirement(formData: FormData) {
         },
       },
       update: {
-        isMandatory,
+        isRequired: isMandatory,
         requiresExpiry,
         // active state logic
       },
       create: {
         jobTitleId,
         documentCategoryId: categoryId,
-        isMandatory,
+        isRequired: isMandatory,
         requiresExpiry,
       },
     });
 
-    revalidatePath("/admin/requirements");
+    revalidatePath("/app/documents-config");
     return { success: true };
   } catch (error) {
     console.error(error);

@@ -35,7 +35,7 @@ export function DocumentList({ complianceItems }: DocumentListProps) {
       {complianceItems.map((item) => (
         <Card key={item.requirement.id} className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-bold">
+            <CardTitle className="text-lg font-bold">
               {item.categoryName}
             </CardTitle>
             {item.status === "Missing" && item.requirement.isRequired && (

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { DocumentVersionRevert } from "../components/document-version-revert";
 import PdfViewer from "../../../components/pdf-components/pdf-viewer";
-import { ReferDocumentDialog } from "../components/document-referral";
 import { PermissionCheck } from "@/components/auth/permission-check";
 import { getCurrentUser } from "@/lib/auth";
 import { DocumentVersionChangeNote } from "../components/document-version-changenote";
@@ -90,14 +89,7 @@ export default async function DocumentPage({
               </div>
             </PermissionCheck>
           )}
-          <PermissionCheck required="refer:document">
-            <div className="flex gap-2">
-              <ReferDocumentDialog
-                documentId={documentId}
-                departments={document.departments ?? []}
-              />
-            </div>
-          </PermissionCheck>
+
           {/* FLOW CONDITION: Only show review button if user is assigned to the document and has not completed the review*/}
           {(document.status.name === "REVIEW" ||
             (document.status.name === "PARTIAL_APPROVED" &&
