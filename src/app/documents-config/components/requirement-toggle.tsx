@@ -1,21 +1,25 @@
 "use client";
 
 import { updateCertificateRequirement } from "@/actions/document-configs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function RequirementToggle({ jobId, catId, initialData }: any) {
-  const [isMandatory, setIsMandatory] = useState(
-    initialData?.isMandatory || false
+  const [isRequired, setIsRequired] = useState(
+    initialData?.isRequired || false
   );
   const [requiresExpiry, setRequiresExpiry] = useState(
     initialData?.requiresExpiry || false
   );
 
+  // useEffect(() => {
+  //   console.log(initialData);
+  // }, []);
+
   const handleChange = async (mandatory: boolean, expiry: boolean) => {
     const formData = new FormData();
     formData.append("jobTitleId", jobId);
     formData.append("categoryId", catId);
-    formData.append("isMandatory", String(mandatory));
+    formData.append("isRequired", String(mandatory));
     formData.append("requiresExpiry", String(expiry));
 
     await updateCertificateRequirement(formData);
@@ -26,9 +30,9 @@ export function RequirementToggle({ jobId, catId, initialData }: any) {
       <label className="flex items-center gap-1">
         <input
           type="checkbox"
-          checked={isMandatory}
+          checked={isRequired}
           onChange={(e) => {
-            setIsMandatory(e.target.checked);
+            setIsRequired(e.target.checked);
             handleChange(e.target.checked, requiresExpiry);
           }}
         />
@@ -40,7 +44,7 @@ export function RequirementToggle({ jobId, catId, initialData }: any) {
           checked={requiresExpiry}
           onChange={(e) => {
             setRequiresExpiry(e.target.checked);
-            handleChange(isMandatory, e.target.checked);
+            handleChange(isRequired, e.target.checked);
           }}
         />
         Has Expiry

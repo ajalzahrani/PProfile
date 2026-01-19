@@ -26,7 +26,7 @@ export default async function DocumentsPage() {
   if (userDocuments.length === 0) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background">
-        <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
+        <div className="mx-auto flex max-w-105 flex-col items-center justify-center text-center">
           <h1 className="text-4xl font-bold tracking-tight">
             Unauthorized Access
           </h1>

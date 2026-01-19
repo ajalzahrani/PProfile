@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { updateCertificateRequirement } from "@/actions/document-configs";
 import { RequirementToggle } from "./components/requirement-toggle";
+import { PageShell } from "@/components/page-shell";
+import { PageHeader } from "@/components/page-header";
 
 export default async function DocumentConfigurationPage() {
   const jobTitles = await prisma.jobTitle.findMany();
@@ -8,10 +10,12 @@ export default async function DocumentConfigurationPage() {
   const requirements = await prisma.certificateRequirement.findMany();
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">
-        Certificate Compliance Manager
-      </h1>
+    <PageShell>
+      <PageHeader
+        heading="Certificate Compliance Manager"
+        text="Upload and manage your professional credentials">
+        {/* Optional Header Buttons */}
+      </PageHeader>
 
       <div className="overflow-x-auto border rounded-lg">
         <table className="min-w-full bg-white">
@@ -55,6 +59,6 @@ export default async function DocumentConfigurationPage() {
           </tbody>
         </table>
       </div>
-    </div>
+    </PageShell>
   );
 }

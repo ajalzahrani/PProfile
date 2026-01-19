@@ -268,8 +268,8 @@ export async function generateDocumentVersionTx(
         documentStatus != "SIGNED" && documentStatus != "PUBLISHED"
           ? FileType.DRAFT
           : documentStatus == "SIGNED"
-          ? FileType.SIGNED
-          : FileType.PUBLISHED;
+            ? FileType.SIGNED
+            : FileType.PUBLISHED;
 
       // Use organized file structure
       const { relativePath, error } = await saveOrganizedFile(
@@ -489,57 +489,42 @@ export async function uploadCertificateAction(
     const hash = crypto.createHash("sha256").update(buffer).digest("hex");
     const departmentIds = JSON.parse(departmentIdsRaw || "[]");
 
-    // 4. Find Existing Document (Slot check for this User + Category)
-    const existingDoc = await prisma.document.findFirst({
-      where: {
-        categoryId: categoryId,
-        createdBy: user.id,
-        isArchived: false,
-      },
-      include: { versions: true },
+    const existing = await prisma.documentVersion.findFirst({
+      where: { hash },
+      include: { document: true },
     });
 
-    // 5. Check if this exact file was already uploaded to this document
-    if (existingDoc?.versions.some((v) => v.hash === hash)) {
+    console.log("existing", existing);
+
+    if (existing) {
       return {
         success: false,
         error:
           "Duplicate document detected: This file has already been uploaded.",
+        details: {
+          documentId: existing.documentId,
+          title: existing.document.title,
+          versionNumber: existing.versionNumber,
+        },
       };
     }
 
     let documentId: string;
 
-    // 6. Database Transaction / Logic
-    if (existingDoc) {
-      // SCENARIO: User is updating/renewing an existing certificate
-      documentId = existingDoc.id;
-      await prisma.document.update({
-        where: { id: documentId },
-        data: {
-          title,
-          description,
-          updatedAt: new Date(),
-          status: { connect: { name: "Submitted" } }, // Reset for Admin review
+    const newDoc = await prisma.document.create({
+      data: {
+        title,
+        description,
+        departments: {
+          connect: departmentIds.map((id: string) => ({ id })),
         },
-      });
-    } else {
-      // SCENARIO: First time upload for this certificate category
-      const newDoc = await prisma.document.create({
-        data: {
-          title,
-          description,
-          departments: {
-            connect: departmentIds.map((id: string) => ({ id })),
-          },
-          status: { connect: { id: documentStatus[0].id } },
-          isArchived,
-          category: { connect: { id: categoryId } },
-          creator: { connect: { id: user.id } },
-        },
-      });
-      documentId = newDoc.id;
-    }
+        status: { connect: { id: documentStatus[0].id } },
+        isArchived,
+        category: { connect: { id: categoryId } },
+        creator: { connect: { id: user.id } },
+      },
+    });
+    documentId = newDoc.id;
 
     // 7. Leverage your existing Local File Storage logic
     const versionResult = await generateDocumentVersionTx(
@@ -548,7 +533,7 @@ export async function uploadCertificateAction(
       buffer,
       hash,
       user.id,
-      existingDoc ? "Renewed Certificate" : "Initial Certificate Upload",
+      "Initial Certificate Upload",
       expirationDateStr ? new Date(expirationDateStr) : null,
       documentStatus[0].name
     );

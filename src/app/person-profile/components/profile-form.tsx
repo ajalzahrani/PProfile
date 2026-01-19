@@ -96,6 +96,7 @@ export function ProfileForm({
       ...initialData,
       jobTitleId: initialData.jobTitleId || undefined,
       nationalityId: initialData.nationalityId || undefined,
+      citizenship: initialData.citizenship || undefined,
     });
   }, [initialData, jobTitles.length, form]);
 

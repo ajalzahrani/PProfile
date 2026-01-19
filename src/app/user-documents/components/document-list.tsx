@@ -61,7 +61,15 @@ export function DocumentList({ complianceItems }: DocumentListProps) {
                 <p className="text-xs text-muted-foreground">
                   Status:{" "}
                   <span className="font-medium text-foreground">
-                    {item.status}
+                    {item.status}{" "}
+                    {/* {item.expiryDate && (
+                      <>
+                        {Math.ceil(
+                          (new Date(item.expiryDate) - new Date()) /
+                            (1000 * 60 * 60 * 24)
+                        )}
+                      </>
+                    )} */}
                   </span>
                 </p>
                 {item.expiryDate && (

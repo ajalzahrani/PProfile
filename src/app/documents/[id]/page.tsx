@@ -9,6 +9,7 @@ import PdfViewer from "../../../components/pdf-components/pdf-viewer";
 import { PermissionCheck } from "@/components/auth/permission-check";
 import { getCurrentUser } from "@/lib/auth";
 import { DocumentVersionChangeNote } from "../components/document-version-changenote";
+import { DeleteDocumentDialog } from "../components/document-delete-dialog";
 // import { SimplePdfViewer } from "../../../components/pdf-components/simple-pdf-viewer";
 
 export default async function DocumentPage({
@@ -52,7 +53,7 @@ export default async function DocumentPage({
       <div className="bg-background border-b px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
-            href="/documents"
+            href="/user-documents"
             className="flex items-center text-muted-foreground hover:text-foreground">
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back to Documents
@@ -60,6 +61,9 @@ export default async function DocumentPage({
         </div>
 
         <div className="flex items-center gap-4">
+          <PermissionCheck required="delete:document">
+            <DeleteDocumentDialog documentId={document.id} />
+          </PermissionCheck>
           <PermissionCheck required="create:document">
             <div className="flex gap-2">
               <Button variant="outline" size="sm" asChild>
@@ -69,46 +73,6 @@ export default async function DocumentPage({
               </Button>
             </div>
           </PermissionCheck>
-          <PermissionCheck required="placeholder:document">
-            <div className="flex gap-2">
-              <Link href={`/opensign/sign/${documentId}`}>
-                <Button variant="outline" size="sm">
-                  Placeholder Document
-                </Button>
-              </Link>
-            </div>
-          </PermissionCheck>
-          {document.status.name === "PENDING_SIGNATURES" && (
-            <PermissionCheck required="sign:document">
-              <div className="flex gap-2">
-                <Link href={`/opensign/sign/${documentId}`}>
-                  <Button variant="outline" size="sm">
-                    Sign Document
-                  </Button>
-                </Link>
-              </div>
-            </PermissionCheck>
-          )}
-
-          {/* FLOW CONDITION: Only show review button if user is assigned to the document and has not completed the review*/}
-          {(document.status.name === "REVIEW" ||
-            (document.status.name === "PARTIAL_APPROVED" &&
-              document.assignments.some(
-                (a) => a.departmentId === user.departmentId
-              ) &&
-              !document.assignments.some(
-                (a) => a.departmentId === user.departmentId && a.isCompleted
-              ))) && (
-            <PermissionCheck required="review:document">
-              <div className="flex gap-2">
-                <Link href={`/documents/${documentId}/review`}>
-                  <Button variant="outline" size="sm">
-                    Review Document
-                  </Button>
-                </Link>
-              </div>
-            </PermissionCheck>
-          )}
         </div>
       </div>
 
@@ -133,21 +97,6 @@ export default async function DocumentPage({
                 </p>
               </div>
             </div>
-
-            {document.tags && document.tags.length > 0 && (
-              <div>
-                <h3 className="text-md font-medium mb-2">Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {document.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <div>
               <h3 className="text-md font-medium mb-2">Description</h3>

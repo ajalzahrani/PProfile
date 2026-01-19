@@ -15,9 +15,17 @@ export async function updateCertificateRequirement(formData: FormData) {
   try {
     const jobTitleId = formData.get("jobTitleId") as string;
     const categoryId = formData.get("categoryId") as string;
-    const isMandatory = formData.get("isMandatory") === "true";
+    const isRequired = formData.get("isRequired") === "true";
     const requiresExpiry = formData.get("requiresExpiry") === "true";
     const active = formData.get("active") === "true";
+
+    console.log({
+      jobTitleId,
+      categoryId,
+      isRequired,
+      requiresExpiry,
+      active,
+    });
 
     // Use upsert to create or update the rule
     // Note: Ensure you added the CertificateRequirement model to your schema first
@@ -29,14 +37,14 @@ export async function updateCertificateRequirement(formData: FormData) {
         },
       },
       update: {
-        isRequired: isMandatory,
+        isRequired,
         requiresExpiry,
         // active state logic
       },
       create: {
         jobTitleId,
         documentCategoryId: categoryId,
-        isRequired: isMandatory,
+        isRequired,
         requiresExpiry,
       },
     });
