@@ -11,14 +11,14 @@ import {
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import { checkServerPermission } from "@/lib/server-permissions";
-import { getDashboardData } from "@/actions/dashboards";
+import { getUserDashboardData } from "@/actions/dashboards";
 import { ExampleTranslation } from "@/components/example-translation";
 import { PermissionCheck } from "@/components/auth/permission-check";
 
 export default async function DashboardPage() {
   await checkServerPermission("manage:dashboards");
 
-  const { data, error } = await getDashboardData();
+  const { data, error } = await getUserDashboardData();
 
   if (error) {
     return <div>Error: {error}</div>;
@@ -28,7 +28,7 @@ export default async function DashboardPage() {
     <PageShell>
       <PageHeader
         heading="Dashboard"
-        text="Overview of OVA incidents and reports">
+        text="Overview of compliance documents and reports">
         <Link href="/documents/new">
           <PermissionCheck required="create:document">
             <Button>
@@ -39,7 +39,7 @@ export default async function DashboardPage() {
         </Link>
       </PageHeader>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <ExampleTranslation />
+        {/* <ExampleTranslation /> */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -86,9 +86,11 @@ export default async function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0%</div>
+            <div className="text-2xl font-bold">
+              {(data?.uploaded / data?.totalRequired) * 100 || 0}%
+            </div>
             <p className="text-xs text-muted-foreground">
-              Resolved & closed incidents
+              Required & uploded certificates documents
             </p>
           </CardContent>
         </Card>

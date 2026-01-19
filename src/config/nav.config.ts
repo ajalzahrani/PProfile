@@ -15,7 +15,6 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/dashboard",
     requiredPermissions: ["manage:dashboard"],
   },
-
   {
     label: "Compliance Documents",
     href: "/user-documents",
@@ -30,6 +29,11 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Document Config",
     href: "/documents-config",
     requiredPermissions: ["manage:document-configs"],
+  },
+  {
+    label: "Admin Dashboard",
+    href: "/admin-dashboard",
+    requiredPermissions: ["manage:admin-dashboards"],
   },
   {
     label: "Documents",
