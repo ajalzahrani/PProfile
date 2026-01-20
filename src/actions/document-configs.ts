@@ -19,14 +19,6 @@ export async function updateCertificateRequirement(formData: FormData) {
     const requiresExpiry = formData.get("requiresExpiry") === "true";
     const active = formData.get("active") === "true";
 
-    console.log({
-      jobTitleId,
-      categoryId,
-      isRequired,
-      requiresExpiry,
-      active,
-    });
-
     // Use upsert to create or update the rule
     // Note: Ensure you added the CertificateRequirement model to your schema first
     await prisma.certificateRequirement.upsert({

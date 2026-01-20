@@ -27,10 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  getDepartmentsForSelect,
-  getDocumentDepartmentsForSelect,
-} from "@/actions/departments";
 
 interface PageParams {
   id: string;
@@ -48,18 +44,10 @@ export default function EditDepartmentPage({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [tagsInput, setTagsInput] = useState("");
   const [categories, setCategories] = useState<{ id: string; name: string }[]>(
-    []
+    [],
   );
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(
-    undefined
-  );
-  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
-  const [departments, setDepartments] = useState<
-    { id: string; name: string }[]
-  >([]);
-  const [isOrganizationWide, setIsOrganizationWide] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -74,9 +62,7 @@ export default function EditDepartmentPage({
       title: "",
       categoryId: undefined,
       departmentIds: [],
-
       description: "",
-
       isArchived: false,
       expirationDate: undefined,
       changeNote: "",
@@ -92,15 +78,8 @@ export default function EditDepartmentPage({
     };
   }, [filePreviewUrl]);
 
-  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    setTagsInput(inputValue);
-  };
-
   const onSubmit = async (data: DocumentFormValues) => {
     console.log("Form submission data:", data);
-    console.log("Selected departments:", selectedDepartments);
-    console.log("Is organization wide:", isOrganizationWide);
     setIsSubmitting(true);
 
     // For updates without new file, we need a different approach
@@ -175,7 +154,7 @@ export default function EditDepartmentPage({
     if (data.expirationDate) {
       formData.append(
         "expirationDate",
-        data.expirationDate.toISOString() as string
+        data.expirationDate.toISOString() as string,
       );
     }
     formData.append("isArchived", JSON.stringify(data.isArchived));
@@ -256,27 +235,8 @@ export default function EditDepartmentPage({
         setCategories(categories ?? []);
       }
     };
+
     fetchCategories();
-    const fetchDepartments = async () => {
-      const { success, departments } = await getDepartmentsForSelect();
-      if (success) {
-        setDepartments(departments ?? []);
-      }
-    };
-    const fetchDocumentDepartments = async () => {
-      const { success, departments } = await getDocumentDepartmentsForSelect(
-        documentId
-      );
-      if (success) {
-        const departmentIds =
-          departments?.map((department) => department.id) ?? [];
-        setSelectedDepartments(departmentIds);
-        setValue("departmentIds", departmentIds);
-      }
-    };
-    fetchCategories();
-    fetchDepartments();
-    fetchDocumentDepartments();
     const fetchDocument = async () => {
       const { documents, success, error } = await getDocumentById(documentId);
 
@@ -287,10 +247,9 @@ export default function EditDepartmentPage({
 
         setValue("id", document.id);
         setValue("title", document.title);
-        setSelectedCategory(document.categoryId ?? undefined);
         setValue("categoryId", document.categoryId ?? "");
         setValue("description", document.description ?? "");
-        setTagsInput(document.tags.join(", "));
+        // setTagsInput(document.tags.join(", "));
         setValue("isArchived", document.isArchived);
         setValue("expirationDate", currentVersion?.expirationDate ?? undefined);
         setFilePreviewUrl(currentVersion?.filePath ?? null);
@@ -298,9 +257,8 @@ export default function EditDepartmentPage({
         // Set departments from document data if available
         if (document.departments && document.departments.length > 0) {
           const departmentIds = document.departments.map(
-            (dept: any) => dept.id
+            (dept: any) => dept.id,
           );
-          setSelectedDepartments(departmentIds);
           setValue("departmentIds", departmentIds);
         }
       } else {
@@ -321,10 +279,10 @@ export default function EditDepartmentPage({
       <div className="bg-background border-b px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
-            href="/documents"
+            href={"/documents/" + documentId}
             className="flex items-center text-muted-foreground hover:text-foreground">
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Documents
+            Back
           </Link>
           <h1 className="text-xl font-semibold truncate">Edit Document</h1>
         </div>
@@ -388,12 +346,7 @@ export default function EditDepartmentPage({
                   name="categoryId"
                   control={control}
                   render={({ field }) => (
-                    <Select
-                      value={field.value ?? ""}
-                      onValueChange={(value) => {
-                        setSelectedCategory(value);
-                        field.onChange(value);
-                      }}>
+                    <Select value={field.value ?? ""} disabled={true}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
@@ -419,6 +372,7 @@ export default function EditDepartmentPage({
               <div className="space-y-2">
                 <Label htmlFor="title">Document Title</Label>
                 <Input
+                  disabled={true}
                   id="title"
                   {...register("title")}
                   placeholder="Enter document title"
@@ -430,7 +384,7 @@ export default function EditDepartmentPage({
                   </p>
                 )}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2" hidden>
                 <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"

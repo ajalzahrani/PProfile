@@ -137,7 +137,7 @@ export async function getDocumentById(documentId: string) {
 export async function compareVersions(
   documentId: string,
   version1: number,
-  version2: number
+  version2: number,
 ) {
   // Implementation for version comparison
 }
@@ -146,7 +146,7 @@ export async function changeDocumentStatus(
   documentId: string,
   currentStatus: string,
   newStatus: string,
-  transaction: PrismaClient
+  transaction: PrismaClient,
 ) {
   if (!documentId) {
     throw new Error("Document not found");
@@ -157,7 +157,7 @@ export async function changeDocumentStatus(
 
   if (!allowedTransitions.includes(newStatus)) {
     throw new Error(
-      `Invalid status transition from ${currentStatus} to ${newStatus}`
+      `Invalid status transition from ${currentStatus} to ${newStatus}`,
     );
   }
 
@@ -175,7 +175,7 @@ export async function getOrganizedFilePath(
   documentId: string,
   fileName: string,
   fileType: FileType,
-  versionNumber?: number
+  versionNumber?: number,
 ): Promise<{ absolutePath: string; relativePath: string }> {
   const baseDir = path.join(process.cwd(), "public", "uploads", documentId);
   const typeDir = path.join(baseDir, fileType);
@@ -213,13 +213,13 @@ export async function saveOrganizedFile(
   fileName: string,
   buffer: Buffer,
   fileType: FileType,
-  versionNumber?: number
+  versionNumber?: number,
 ): Promise<{ error?: string; relativePath?: string }> {
   const { absolutePath, relativePath } = await getOrganizedFilePath(
     documentId,
     fileName,
     fileType,
-    versionNumber
+    versionNumber,
   );
 
   try {
@@ -252,7 +252,7 @@ export async function generateDocumentVersionTx(
   uploaderId: string,
   changeNote: string,
   expirationDate: Date | null,
-  documentStatus: string
+  documentStatus: string,
 ) {
   try {
     const result = await prisma.$transaction(async (tx) => {
@@ -277,7 +277,7 @@ export async function generateDocumentVersionTx(
         fileName,
         buffer,
         fileType,
-        versionNumber
+        versionNumber,
       );
 
       if (error || !relativePath) {
@@ -416,7 +416,7 @@ export async function createDocumentWithVersion(input: SaveInput) {
       user.id,
       changeNote || "",
       expirationDate,
-      documentStatus
+      documentStatus,
     );
     return { success: true, documentId: updated.id, version };
   }
@@ -442,7 +442,7 @@ export async function createDocumentWithVersion(input: SaveInput) {
     user.id,
     changeNote || "",
     expirationDate,
-    documentStatus
+    documentStatus,
   );
 
   if (!version.success) {
@@ -454,7 +454,7 @@ export async function createDocumentWithVersion(input: SaveInput) {
 
 export async function uploadCertificateAction(
   prevState: any,
-  formData: FormData
+  formData: FormData,
 ) {
   try {
     // 1. Auth Guard
@@ -535,7 +535,7 @@ export async function uploadCertificateAction(
       user.id,
       "Initial Certificate Upload",
       expirationDateStr ? new Date(expirationDateStr) : null,
-      documentStatus[0].name
+      documentStatus[0].name,
     );
 
     if (!versionResult.success) {
@@ -543,8 +543,8 @@ export async function uploadCertificateAction(
     }
 
     // 8. Refresh the UI
-    revalidatePath("/profile");
-    revalidatePath("/documents");
+    revalidatePath("/person-profile");
+    revalidatePath("/user-documents");
 
     return {
       success: true,
@@ -607,7 +607,7 @@ export async function getUserComplianceStatus(userId: string) {
  */
 export async function updateDocument(
   documentId: string,
-  document: DocumentFormValues
+  document: DocumentFormValues,
 ) {
   const session = await getServerSession(authOptions);
 
@@ -657,7 +657,7 @@ export async function deleteDocument(
     skipFileDeletion?: boolean;
     skipDatabaseDeletion?: boolean;
     logDeletion?: boolean;
-  } = {}
+  } = {},
 ): Promise<{
   success: boolean;
   error?: string;
@@ -690,7 +690,7 @@ export async function deleteDocument(
 
     if (logDeletion) {
       console.log(
-        `Starting deletion of document ${documentId} (${document.title})`
+        `Starting deletion of document ${documentId} (${document.title})`,
       );
       console.log(`Deletion type: ${deletionType}`);
       console.log(`Versions: ${document.versions.length}`);
@@ -730,7 +730,7 @@ export async function deleteDocument(
       if (deletionResult) {
         console.log(`Files deleted: ${deletionResult.deletedFiles.length}`);
         console.log(
-          `Total size freed: ${deletionResult.totalSizeDeleted} bytes`
+          `Total size freed: ${deletionResult.totalSizeDeleted} bytes`,
         );
       }
     }
@@ -808,7 +808,7 @@ export async function getDocumentFileStats(documentId: string): Promise<{
  */
 export async function deleteDocumentFiles(
   documentId: string,
-  deletionType: DeletionType = DeletionType.HARD
+  deletionType: DeletionType = DeletionType.HARD,
 ): Promise<DeletionResult> {
   const result: DeletionResult = {
     success: true,
@@ -829,7 +829,7 @@ export async function deleteDocumentFiles(
     // Get file statistics before deletion
     const stats = await getDocumentFileStats(documentId);
     console.log(
-      `Deleting document ${documentId}: ${stats.totalFiles} files, ${stats.totalSize} bytes`
+      `Deleting document ${documentId}: ${stats.totalFiles} files, ${stats.totalSize} bytes`,
     );
 
     if (deletionType === DeletionType.SOFT) {
@@ -844,7 +844,7 @@ export async function deleteDocumentFiles(
         process.cwd(),
         "public",
         "archive",
-        documentId
+        documentId,
       );
       await mkdir(path.dirname(archiveDir), { recursive: true });
 
@@ -894,7 +894,7 @@ export async function deleteDocumentFiles(
     await deleteDirectory(baseDir);
 
     console.log(
-      `Hard delete completed for document ${documentId}: ${result.deletedFiles.length} files deleted`
+      `Hard delete completed for document ${documentId}: ${result.deletedFiles.length} files deleted`,
     );
   } catch (error) {
     result.success = false;
@@ -910,7 +910,7 @@ export async function deleteDocumentFiles(
  */
 export async function batchDeleteDocuments(
   documentIds: string[],
-  deletionType: DeletionType = DeletionType.HARD
+  deletionType: DeletionType = DeletionType.HARD,
 ): Promise<{
   success: boolean;
   results: Array<{ documentId: string; success: boolean; error?: string }>;
@@ -1011,7 +1011,7 @@ export async function cleanupOrphanedFiles(): Promise<{
 
 export async function revertDocumentToVersion(
   documentId: string,
-  versionId: string
+  versionId: string,
 ) {
   const session = await getServerSession(authOptions);
 
