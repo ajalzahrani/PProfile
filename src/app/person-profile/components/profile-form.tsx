@@ -119,7 +119,7 @@ export function ProfileForm({
       // Get the file from the form
       const form = document.querySelector("form");
       const fileInput = form?.querySelector(
-        "input[type=file]"
+        "input[type=file]",
       ) as HTMLInputElement;
 
       // Create a FormData object
@@ -178,7 +178,7 @@ export function ProfileForm({
         },
         (errors) => {
           console.log("Form validation errors:", errors);
-        }
+        },
       )}>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-3 gap-4">
@@ -311,6 +311,21 @@ export function ProfileForm({
             {errors.jobTitleId && (
               <p className="mt-1 text-sm text-red-500">
                 {errors.jobTitleId.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="employeeno">Employee Number</Label>
+            <Input
+              id="employeeno"
+              {...register("employeeNo")}
+              placeholder="Enter Employee number"
+              className="mt-1"
+            />
+            {errors.employeeNo && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.employeeNo.message}
               </p>
             )}
           </div>
