@@ -34,6 +34,7 @@ export default async function DashboardPage() {
         initialOccurrences={occurrences}
         initialStatistics={statistics}
         filterOptions={filterOptions}
+        dashboardDTO={dashboardDTO}
       />
     </PageShell>
   );

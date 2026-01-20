@@ -8,17 +8,20 @@ import { ReportTable } from "./report-table";
 import { ExportButtons } from "./export-buttons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Table as TableIcon, PieChart } from "lucide-react";
+import { DocumentComplianceDashboardDTO } from "@/actions/dashboards.validation";
 
 interface ReportsClientProps {
-  initialOccurrences: any[];
-  initialStatistics: any;
-  filterOptions: any;
+  initialOccurrences?: any[];
+  initialStatistics?: any;
+  filterOptions?: any;
+  dashboardDTO: DocumentComplianceDashboardDTO | undefined;
 }
 
 export function ReportsClient({
   initialOccurrences,
   initialStatistics,
   filterOptions,
+  dashboardDTO,
 }: ReportsClientProps) {
   const [occurrences, setOccurrences] = useState(initialOccurrences);
   const [statistics, setStatistics] = useState(initialStatistics);

@@ -85,7 +85,7 @@ export function ReportFilters({
   const toggleSelection = (
     value: string,
     selected: string[],
-    setter: (values: string[]) => void
+    setter: (values: string[]) => void,
   ) => {
     if (selected.includes(value)) {
       setter(selected.filter((v) => v !== value));
@@ -117,7 +117,7 @@ export function ReportFilters({
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !dateFrom && "text-muted-foreground"
+                        !dateFrom && "text-muted-foreground",
                       )}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dateFrom ? format(dateFrom, "PPP") : "Pick a date"}
@@ -142,7 +142,7 @@ export function ReportFilters({
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !dateTo && "text-muted-foreground"
+                        !dateTo && "text-muted-foreground",
                       )}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dateTo ? format(dateTo, "PPP") : "Pick a date"}
@@ -173,7 +173,7 @@ export function ReportFilters({
                         toggleSelection(
                           status.id,
                           selectedStatuses,
-                          setSelectedStatuses
+                          setSelectedStatuses,
                         )
                       }
                     />
@@ -202,7 +202,7 @@ export function ReportFilters({
                         toggleSelection(
                           severity.id,
                           selectedSeverities,
-                          setSelectedSeverities
+                          setSelectedSeverities,
                         )
                       }
                     />
@@ -231,7 +231,7 @@ export function ReportFilters({
                         toggleSelection(
                           department.id,
                           selectedDepartments,
-                          setSelectedDepartments
+                          setSelectedDepartments,
                         )
                       }
                     />
@@ -260,7 +260,7 @@ export function ReportFilters({
                         toggleSelection(
                           location.id,
                           selectedLocations,
-                          setSelectedLocations
+                          setSelectedLocations,
                         )
                       }
                     />
@@ -282,12 +282,12 @@ export function ReportFilters({
                   patientInvolved === undefined
                     ? "all"
                     : patientInvolved
-                    ? "yes"
-                    : "no"
+                      ? "yes"
+                      : "no"
                 }
                 onValueChange={(value) =>
                   setPatientInvolved(
-                    value === "all" ? undefined : value === "yes"
+                    value === "all" ? undefined : value === "yes",
                   )
                 }>
                 <SelectTrigger>

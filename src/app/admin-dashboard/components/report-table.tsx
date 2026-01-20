@@ -13,8 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
-import { getSeverityColor } from "@/lib/severity-color";
-import { getStatusBadge } from "@/lib/status-badge";
+// import { getSeverityColor } from "@/lib/severity-color";
+// import { getStatusBadge } from "@/lib/status-badge";
 
 interface Occurrence {
   id: string;
@@ -74,7 +74,7 @@ export function ReportTable({ occurrences }: ReportTableProps) {
             <TableBody>
               {occurrences.length > 0 ? (
                 occurrences.map((occurrence) => {
-                  const statusBadge = getStatusBadge(occurrence.status.name);
+                  // const statusBadge = getStatusBadge(occurrence.status.name);
                   return (
                     <TableRow key={occurrence.id}>
                       <TableCell className="font-medium">
@@ -83,26 +83,26 @@ export function ReportTable({ occurrences }: ReportTableProps) {
                       <TableCell>
                         {format(
                           new Date(occurrence.occurrenceDate),
-                          "dd/MM/yyyy"
+                          "dd/MM/yyyy",
                         )}
                       </TableCell>
                       <TableCell>
                         {occurrence.incident.name.slice(0, 30)}
                       </TableCell>
                       <TableCell>
-                        <Badge
+                        {/* <Badge
                           variant={
                             getSeverityColor(
                               occurrence.incident.severity.name
                             ) as any
                           }>
                           {occurrence.incident.severity.name}
-                        </Badge>
+                        </Badge> */}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={statusBadge.variant as any}>
+                        {/* <Badge variant={statusBadge.variant as any}>
                           {occurrence.status.name}
-                        </Badge>
+                        </Badge> */}
                       </TableCell>
                       <TableCell>
                         {occurrence.location?.name || "N/A"}
