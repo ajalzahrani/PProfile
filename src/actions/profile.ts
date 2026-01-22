@@ -2,9 +2,7 @@
 
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
-import { authOptions, getCurrentUser } from "@/lib/auth";
-import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import { authOptions } from "@/lib/auth";
 import { personSchema } from "./persons.validation";
 
 export async function updatePersonProfile(formData: FormData) {

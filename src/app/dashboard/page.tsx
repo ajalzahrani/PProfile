@@ -12,7 +12,6 @@ import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import { checkServerPermission } from "@/lib/server-permissions";
 import { getUserDashboardData } from "@/actions/dashboards";
-import { ExampleTranslation } from "@/components/example-translation";
 import { PermissionCheck } from "@/components/auth/permission-check";
 
 export default async function DashboardPage() {
@@ -87,7 +86,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(data?.uploaded / data?.totalRequired) * 100 || 0}%
+              {(data && (data.uploaded / data.totalRequired) * 100) || 0}%
             </div>
             <p className="text-xs text-muted-foreground">
               Required & uploded certificates documents

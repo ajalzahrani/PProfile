@@ -5,7 +5,7 @@ import { documentSchema } from "@/actions/documents.validation";
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const user = await getCurrentUser();
@@ -26,7 +26,7 @@ export async function PUT(
           error: "Invalid fields",
           details: validation.error.flatten().fieldErrors,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -35,8 +35,6 @@ export async function PUT(
       description,
       categoryId,
       departmentIds,
-      isOrganizationWide,
-      tags,
       isArchived,
       expirationDate,
     } = validation.data;
@@ -49,7 +47,7 @@ export async function PUT(
     if (!existingDocument) {
       return NextResponse.json(
         { success: false, error: "Document not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -59,10 +57,8 @@ export async function PUT(
       data: {
         title,
         description,
-        isOrganizationWide,
-        tags,
         isArchived,
-        departments: isOrganizationWide
+        departments: false
           ? { set: [] }
           : { set: departmentIds.map((id) => ({ id })) },
         ...(categoryId ? { category: { connect: { id: categoryId } } } : {}),
@@ -85,7 +81,7 @@ export async function PUT(
     console.error("Error updating document:", error);
     return NextResponse.json(
       { success: false, error: error?.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -72,7 +72,7 @@ export function ExportButtons({ occurrences, statistics }: ExportButtonsProps) {
       link.setAttribute("href", url);
       link.setAttribute(
         "download",
-        `occurrence-report-${new Date().toISOString().split("T")[0]}.csv`
+        `occurrence-report-${new Date().toISOString().split("T")[0]}.csv`,
       );
       link.style.visibility = "hidden";
       document.body.appendChild(link);
@@ -120,7 +120,7 @@ export function ExportButtons({ occurrences, statistics }: ExportButtonsProps) {
       link.setAttribute("href", url);
       link.setAttribute(
         "download",
-        `occurrence-report-${new Date().toISOString().split("T")[0]}.json`
+        `occurrence-report-${new Date().toISOString().split("T")[0]}.json`,
       );
       link.style.visibility = "hidden";
       document.body.appendChild(link);
@@ -131,7 +131,7 @@ export function ExportButtons({ occurrences, statistics }: ExportButtonsProps) {
         title: "Export Successful",
         description: "Report has been exported to JSON",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Export Failed",

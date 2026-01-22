@@ -8,9 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "../../../components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search } from "lucide-react";
-import ReviewPage from "@/app/review/[filePath]/page";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 type DocumentResult = {
   id: string;
@@ -129,7 +127,7 @@ export function SearchPanel() {
                 key={doc.id}
                 onClick={() =>
                   router.push(
-                    `review/${encodeURIComponent(doc.currentVersion.filePath)}`
+                    `review/${encodeURIComponent(doc.currentVersion.filePath)}`,
                   )
                 }
                 className="transition-shadow hover:shadow-md cursor-pointer">

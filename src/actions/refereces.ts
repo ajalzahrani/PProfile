@@ -1,10 +1,7 @@
 "use server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { checkServerPermission } from "@/lib/server-permissions";
-import { Prisma } from "@prisma/client";
 
 type ModelType = "nationality" | "unit" | "rank" | "sponsor" | "jobTitle";
 
@@ -33,7 +30,7 @@ export async function getItems(model: ModelType): Promise<returnType> {
 
 export async function createItem(
   model: ModelType,
-  data: any
+  data: any,
 ): Promise<returnType> {
   await checkServerPermission(model + ":create");
   const result = await getModel(model).create({ data });
@@ -48,7 +45,7 @@ export async function createItem(
 export async function updateItem(
   model: ModelType,
   id: string,
-  data: any
+  data: any,
 ): Promise<returnType> {
   await checkServerPermission(model + ":update");
   const result = await getModel(model).update({
@@ -65,7 +62,7 @@ export async function updateItem(
 
 export async function deleteItem(
   model: ModelType,
-  id: string
+  id: string,
 ): Promise<returnType> {
   await checkServerPermission(model + ":delete");
   const result = await getModel(model).delete({

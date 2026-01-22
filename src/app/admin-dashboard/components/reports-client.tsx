@@ -7,7 +7,7 @@ import { ReportCharts } from "./report-charts";
 import { ReportTable } from "./report-table";
 import { ExportButtons } from "./export-buttons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Table as TableIcon, PieChart } from "lucide-react";
+import { Table as TableIcon, PieChart } from "lucide-react";
 import { DocumentComplianceDashboardDTO } from "@/actions/dashboards.validation";
 
 interface ReportsClientProps {
@@ -55,7 +55,7 @@ export function ReportsClient({
     <div className="space-y-6">
       {/* Actions Row: Export + Filter */}
       <div className="flex justify-end items-center gap-2">
-        <ExportButtons occurrences={occurrences} statistics={statistics} />
+        {/* <ExportButtons occurrences={occurrences} statistics={statistics} /> */}
         <ReportFilters
           filterOptions={filterOptions}
           onFilterChange={handleFilterChange}
@@ -96,7 +96,7 @@ export function ReportsClient({
               </TabsContent>
 
               <TabsContent value="table">
-                <ReportTable occurrences={occurrences} />
+                {/* <ReportTable occurrences={occurrences} /> */}
               </TabsContent>
             </Tabs>
           </>

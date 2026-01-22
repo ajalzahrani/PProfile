@@ -29,7 +29,7 @@ export default async function DocumentPage({
   if (!documentResponse.success) {
     if (documentResponse.error === "Unauthorized") {
       redirect(
-        "/login?callbackUrl=" + encodeURIComponent(`/documents/${documentId}`)
+        "/login?callbackUrl=" + encodeURIComponent(`/documents/${documentId}`),
       );
     } else {
       notFound();
@@ -45,7 +45,7 @@ export default async function DocumentPage({
   }
 
   // TODO: Handle signedUrl and filePath for signed and published documents and drafts accordingly.
-  const fileUrl = document.signedUrl ?? currentVersion.filePath; // currentVersion.filePath;
+  const fileUrl = currentVersion.filePath; // currentVersion.filePath;
 
   return (
     <div className="w-screen min-h-screen">
@@ -112,7 +112,7 @@ export default async function DocumentPage({
               </p>
             </div>
 
-            <div>
+            {/* <div>
               <h3 className="text-md font-medium mb-2">Document Scope</h3>
               {document.isOrganizationWide ? (
                 <p className="text-sm text-muted-foreground">
@@ -124,7 +124,7 @@ export default async function DocumentPage({
                     "No departments provided."}
                 </p>
               )}
-            </div>
+            </div> */}
 
             <div>
               <h3 className="text-md font-medium mb-2">Version History</h3>
@@ -139,7 +139,7 @@ export default async function DocumentPage({
                     key={v.id}
                     className={cn(
                       "text-sm border-b border-border p-2",
-                      v.id === document.currentVersion?.id && "bg-muted"
+                      v.id === document.currentVersion?.id && "bg-muted",
                     )}>
                     <div className="flex justify-between">
                       <span className="font-medium">

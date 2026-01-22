@@ -26,7 +26,7 @@ interface PageParams {
 export default function EditDepartmentPage({
   params,
 }: {
-  params: PageParams | Promise<PageParams>;
+  params: Promise<PageParams>;
 }) {
   const resolvedParams = use(params as Promise<PageParams>);
   const departmentId = resolvedParams.id;

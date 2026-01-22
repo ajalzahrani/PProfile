@@ -3,8 +3,6 @@ import Link from "next/link";
 import { getDocumentById } from "@/actions/documents";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-import { DocumentCommunication } from "../../components/document-communication";
 import PdfViewer from "@/components/pdf-components/pdf-viewer";
 import { PermissionCheck } from "@/components/auth/permission-check";
 import ButtonApprove from "../../components/button-approve";
@@ -29,7 +27,7 @@ export default async function DocumentPage({
   if (!documentResponse.success) {
     if (documentResponse.error === "Unauthorized") {
       redirect(
-        "/login?callbackUrl=" + encodeURIComponent(`/documents/${documentId}`)
+        "/login?callbackUrl=" + encodeURIComponent(`/documents/${documentId}`),
       );
     } else {
       notFound();
@@ -61,21 +59,6 @@ export default async function DocumentPage({
 
         <div className="flex gap-2">
           {/* FLOW CONDITION: Only show approve button if user is assigned to the document and has not completed the review*/}
-          {document.status.name === "REVIEW" ||
-            (document.status.name === "PARTIAL_APPROVED" &&
-              document.assignments.some(
-                (a) => a.departmentId === user.departmentId
-              ) &&
-              !document.assignments.some(
-                (a) => a.departmentId === user.departmentId && a.isCompleted
-              ) && (
-                <PermissionCheck required="approve:document">
-                  <ButtonApprove
-                    documentId={documentId}
-                    assignmentIds={document.assignments.map((a) => a.id)}
-                  />
-                </PermissionCheck>
-              ))}
           <PermissionCheck required="edit:document">
             <Button variant="outline" size="sm" asChild>
               <Link href={`/documents/${documentId}/edit`}>Edit Document</Link>
@@ -148,11 +131,6 @@ export default async function DocumentPage({
                 </p>
               )}
             </div> */}
-
-            {/* Add the group communication and feedback thread */}
-            <div>
-              <DocumentCommunication documentId={document.id} />
-            </div>
           </div>
         </div>
       </div>

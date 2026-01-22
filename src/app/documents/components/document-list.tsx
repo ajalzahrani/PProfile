@@ -24,29 +24,12 @@ import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { deleteDocument } from "@/actions/documents";
 
-type DocumentWithRelations = Prisma.DocumentGetPayload<{
-  include: {
-    versions: true;
-    creator: {
-      select: {
-        name: true;
-      };
-    };
-    status: {
-      select: {
-        name: true;
-      };
-    };
-  };
-}>;
-
 interface DocumentListProps {
-  documents: DocumentWithRelations[];
+  documents: any[];
 }
 
 export function DocumentList({ documents }: DocumentListProps) {
-  const [documentToDelete, setDocumentToDelete] =
-    useState<DocumentWithRelations | null>(null);
+  const [documentToDelete, setDocumentToDelete] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteDocument = async () => {

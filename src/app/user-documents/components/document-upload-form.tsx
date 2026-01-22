@@ -3,15 +3,6 @@
 import { useFormStatus } from "react-dom";
 import { uploadCertificateAction } from "@/actions/documents";
 import { useState, useActionState } from "react";
-import {
-  Card,
-  CardAction,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 interface Props {
   categoryId: string;

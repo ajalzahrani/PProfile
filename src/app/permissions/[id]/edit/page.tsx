@@ -44,7 +44,7 @@ interface PageParams {
 export default function EditPermissionPage({
   params,
 }: {
-  params: PageParams | Promise<PageParams>;
+  params: Promise<PageParams>;
 }) {
   const resolvedParams = use(params as Promise<PageParams>);
   const permissionId = resolvedParams.id;

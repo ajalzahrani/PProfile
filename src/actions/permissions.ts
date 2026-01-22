@@ -9,6 +9,7 @@ import {
   PermissionFormValues,
   permissionSchema,
 } from "./permissions.validation";
+import { nullToUndefined } from "@/lib/utils";
 
 // Get all permissions
 export async function getPermissions() {
@@ -19,11 +20,13 @@ export async function getPermissions() {
   }
 
   try {
-    const permissions = await prisma.permission.findMany({
+    const queryResult = await prisma.permission.findMany({
       orderBy: {
         name: "asc",
       },
     });
+
+    const permissions = nullToUndefined(queryResult);
 
     return {
       success: true,
@@ -112,7 +115,7 @@ export async function createPermission(data: PermissionFormValues) {
 // Update an existing permission
 export async function updatePermission(
   permissionId: string,
-  data: PermissionFormValues
+  data: PermissionFormValues,
 ) {
   const session = await getServerSession(authOptions);
 

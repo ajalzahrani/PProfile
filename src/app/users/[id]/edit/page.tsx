@@ -32,7 +32,7 @@ interface PageParams {
 export default function EditUserPage({
   params,
 }: {
-  params: PageParams | Promise<PageParams>;
+  params: Promise<PageParams>;
 }) {
   const resolvedParams = use(params as Promise<PageParams>);
   const userId = resolvedParams.id;
@@ -92,7 +92,7 @@ export default function EditUserPage({
         const departmentsResponse = await getDepartments();
         if (departmentsResponse.success) {
           setDepartments(
-            departmentsResponse.departments as DepartmentFormValues[]
+            departmentsResponse.departments as DepartmentFormValues[],
           );
         } else {
           toast({

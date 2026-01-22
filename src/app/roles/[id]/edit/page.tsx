@@ -27,7 +27,7 @@ interface PageParams {
 export default function EditRolePage({
   params,
 }: {
-  params: PageParams | Promise<PageParams>;
+  params: Promise<PageParams>;
 }) {
   const resolvedParams = use(params as Promise<PageParams>);
   const roleId = resolvedParams.id;
@@ -57,7 +57,7 @@ export default function EditRolePage({
         const permissionsResponse = await getPermissions();
         if (permissionsResponse.success) {
           setPermissions(
-            permissionsResponse.permissions as PermissionFormValues[]
+            permissionsResponse.permissions as PermissionFormValues[],
           );
         }
 
@@ -75,7 +75,7 @@ export default function EditRolePage({
           const rolePermissionsData = await getPermissionsByRoleId(roleId);
           if (rolePermissionsData.success && rolePermissionsData.permissions) {
             setSelectedPermissions(
-              rolePermissionsData.permissions.map((p: any) => p.id)
+              rolePermissionsData.permissions.map((p: any) => p.id),
             );
           }
         } else {
@@ -105,7 +105,7 @@ export default function EditRolePage({
       groups[category].push(permission);
       return groups;
     },
-    {}
+    {},
   );
 
   const sortedCategories = Object.keys(groupedPermissions).sort();
@@ -208,12 +208,12 @@ export default function EditRolePage({
                       <Checkbox
                         id={permission.id}
                         checked={selectedPermissions.includes(
-                          permission.id || ""
+                          permission.id || "",
                         )}
                         onCheckedChange={(checked) =>
                           handlePermissionChange(
                             permission.id || "",
-                            checked as boolean
+                            checked as boolean,
                           )
                         }
                       />

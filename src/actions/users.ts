@@ -8,10 +8,10 @@ import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import {
   userFormSchema,
-  userSchema,
-  type UserFormValues,
   type UserFormValuesWithRolesAndDepartments,
 } from "./users.validations";
+import { nullToUndefined } from "@/lib/utils";
+
 // Get all users with their roles
 export async function getUsers() {
   const session = await getServerSession(authOptions);
@@ -41,12 +41,18 @@ export async function getUsers() {
       },
     });
 
+    const userRole = users.map((user) => user.role);
+    const userDepartment = users.map((user) => user.department);
+
+    const role = nullToUndefined(userRole);
+    const department = nullToUndefined(userDepartment);
+
     return {
       success: true,
       users: users.map((user) => ({
         ...user,
-        role: user.role,
-        department: user.department,
+        role,
+        department,
       })),
     };
   } catch (error) {
@@ -160,7 +166,7 @@ export async function createUser(data: UserFormValuesWithRolesAndDepartments) {
 // Update an existing user
 export async function updateUser(
   userId: string,
-  data: UserFormValuesWithRolesAndDepartments
+  data: UserFormValuesWithRolesAndDepartments,
 ) {
   const session = await getServerSession(authOptions);
 
@@ -191,7 +197,7 @@ export async function updateUser(
     }
 
     // Start a transaction to handle the user update
-    const user = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       // Update basic user info
       const userData: any = {
         name: validatedData.name,

@@ -1,6 +1,6 @@
 "use client";
 
-import { approveDocument } from "@/actions/documents";
+// import { approveDocument } from "@/actions/documents";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { hasPermission } from "@/lib/permissions";
@@ -29,24 +29,24 @@ export default function ButtonApprove({
     return null;
   }
 
-  const handleApprove = async () => {
-    console.log("Approve");
-    console.log(documentId);
-    const res = await approveDocument(documentId, assignmentIds);
-    if (res?.success) {
-      toast({
-        title: "Success",
-        description: "Document approved",
-      });
-    } else {
-      toast({
-        title: "Error",
-        description: res?.error,
-        variant: "destructive",
-      });
-      console.error(res);
-    }
-  };
+  // const handleApprove = async () => {
+  //   console.log("Approve");
+  //   console.log(documentId);
+  //   const res = await approveDocument(documentId, assignmentIds);
+  //   if (res?.success) {
+  //     toast({
+  //       title: "Success",
+  //       description: "Document approved",
+  //     });
+  //   } else {
+  //     toast({
+  //       title: "Error",
+  //       description: res?.error,
+  //       variant: "destructive",
+  //     });
+  //     console.error(res);
+  //   }
+  // };
 
-  return <Button onClick={handleApprove}>Approve Document</Button>;
+  return <Button>Approve Document</Button>;
 }

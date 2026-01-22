@@ -4,34 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  AlertCircle,
-  ArrowLeft,
-  Building2,
-  Link,
-  Key,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowLeft, Building2, Link, Key, ShieldCheck } from "lucide-react";
 import { createUser } from "@/actions/users";
 import { getRoles } from "@/actions/roles";
 import { getDepartments } from "@/actions/departments";
@@ -102,7 +77,7 @@ export default function NewUserPage() {
         const departmentsResponse = await getDepartments();
         if (departmentsResponse.success) {
           setDepartments(
-            departmentsResponse.departments as DepartmentFormValues[]
+            departmentsResponse.departments as DepartmentFormValues[],
           );
         } else {
           setError("Failed to load departments");
@@ -127,7 +102,7 @@ export default function NewUserPage() {
 
     try {
       const result = await createUser(
-        data as unknown as UserFormValuesWithRolesAndDepartments
+        data as unknown as UserFormValuesWithRolesAndDepartments,
       );
       if (result.success) {
         toast({

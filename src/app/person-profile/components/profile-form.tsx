@@ -8,24 +8,11 @@ import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PageShell } from "@/components/page-shell";
-import { PageHeader } from "@/components/page-header";
-import { createPerson } from "@/actions/persons";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import {
   personSchema,
   type PersonFormValues,
 } from "@/actions/persons.validation";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CardContent, CardFooter } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -147,7 +134,7 @@ export function ProfileForm({
         toast({
           title: "Person created successfully",
         });
-        router.push("/persons");
+        // router.push("/");
       } else {
         toast({
           title: "Failed to create person",

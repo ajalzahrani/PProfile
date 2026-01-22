@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     },
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.jsx", ".next/types/**/*.ts", "src/app/api/feedback-token", "src/opensign/**/*"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.jsx", ".next/types/**/*.ts", "src/app/api/feedback-token", "src/opensign/**/*", "next.config.js"],
   "exclude": ["node_modules"]
 }

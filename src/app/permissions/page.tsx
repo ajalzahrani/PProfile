@@ -7,10 +7,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PermissionList } from "./components/permissions-list";
 import { checkServerPermission } from "@/lib/server-permissions";
+import { PermissionFormValues } from "@/actions/permissions.validation";
 
 export default async function PermissionsPage() {
   await checkServerPermission("manage:permissions");
-  const permissions = await getPermissions();
+
+  const permissions: {
+    success: boolean;
+    permissions?: PermissionFormValues[];
+    error?: string;
+  } = await getPermissions();
 
   if (!permissions.success) {
     return notFound();

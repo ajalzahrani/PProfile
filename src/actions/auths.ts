@@ -1,11 +1,9 @@
 "use server";
 import { prisma } from "@/lib/prisma";
-import { authOptions, getCurrentUser } from "@/lib/auth";
-import { getServerSession } from "next-auth";
+import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
-import { unstable_cache as cache, revalidateTag } from "next/cache";
-import { getPermissionsByRoleId } from "./permissions";
+import { unstable_cache as cache } from "next/cache";
 
 // Cached function to get user data by ID
 const getCachedUserById = cache(
@@ -18,7 +16,7 @@ const getCachedUserById = cache(
     return user;
   },
   ["user-by-id"],
-  { tags: ["user-session"], revalidate: 300 } // Cache for 5 minutes
+  { tags: ["user-session"], revalidate: 300 }, // Cache for 5 minutes
 );
 
 // Get current user by first getting session outside cache, then using cached function
@@ -45,7 +43,7 @@ function createUserPermissionsCache(userId: string) {
       return permissions.map((rp) => rp.permission.code);
     },
     [`user-permissions-${userId}`],
-    { tags: ["permissions", `user-${userId}`], revalidate: 300 }
+    { tags: ["permissions", `user-${userId}`], revalidate: 300 },
   );
 }
 
@@ -70,7 +68,7 @@ export const checkServerPermission = async (required: string | string[]) => {
 
   const requiredArray = typeof required === "string" ? [required] : required;
   const hasRequiredPermission = requiredArray.some((perm) =>
-    userPermissions.includes(perm)
+    userPermissions.includes(perm),
   );
 
   if (!hasRequiredPermission) {
@@ -120,6 +118,7 @@ export async function authenticateUser(email: string, password: string) {
 
   return {
     ...user,
+    departmentId: user.departmentId || undefined,
     permissions: permissions.map((p) => p.code),
   };
 }

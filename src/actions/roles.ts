@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { RoleFormValues, roleSchema } from "./roles.validation";
+import { nullToUndefined } from "@/lib/utils";
 
 // Get all roles with their permissions
 export async function getRoles() {
@@ -16,11 +17,13 @@ export async function getRoles() {
   }
 
   try {
-    const roles = await prisma.role.findMany({
+    const queryResult = await prisma.role.findMany({
       orderBy: {
         name: "asc",
       },
     });
+
+    const roles = nullToUndefined(queryResult);
 
     return {
       success: true,
@@ -139,7 +142,7 @@ export async function createRole(data: RoleFormValues) {
 export async function updateRole(
   roleId: string,
   data: RoleFormValues,
-  permissionIds: string[]
+  permissionIds: string[],
 ) {
   const session = await getServerSession(authOptions);
 
@@ -164,7 +167,7 @@ export async function updateRole(
     }
 
     // Start a transaction to handle the role update
-    const role = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       // Update basic role info
       const updatedRole = await tx.role.update({
         where: { id: roleId },

@@ -35,7 +35,7 @@ interface PageParams {
 export default function EditDepartmentPage({
   params,
 }: {
-  params: PageParams | Promise<PageParams>;
+  params: Promise<PageParams>;
 }) {
   const resolvedParams = use(params as Promise<PageParams>);
   const documentId = resolvedParams.id;
@@ -194,7 +194,7 @@ export default function EditDepartmentPage({
           variant: "destructive",
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       toast({
         title: "Upload failed",
         description: "Try again",

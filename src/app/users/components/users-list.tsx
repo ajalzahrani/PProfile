@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Eye, FileEdit, Trash2 } from "lucide-react";
+import { FileEdit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import {
   Dialog,

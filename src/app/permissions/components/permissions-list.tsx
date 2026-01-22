@@ -18,14 +18,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { toast, useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { PermissionFormValues } from "@/actions/permissions.validation";
 import { deletePermission } from "@/actions/permissions";
 
+type PermissionsExtended = PermissionFormValues & {
+  query?: string; // Add the question mark to make it optional
+};
+
 interface PermissionListProps {
-  permissions: PermissionFormValues[];
+  permissions: PermissionsExtended[];
 }
 
 export function PermissionList({ permissions }: PermissionListProps) {
@@ -38,21 +42,22 @@ export function PermissionList({ permissions }: PermissionListProps) {
 
   // Group permissions by object (based on code suffix after ":")
   const groupedPermissions = permissions.reduce(
-    (groups: Record<string, Permission[]>, permission) => {
+    (groups, permission) => {
       const parts = permission.code.split(":");
-      const object =
-        parts.length > 1
-          ? parts[1][parts[1].length - 1] == "s"
-            ? parts[1].slice(0, -1)
-            : parts[1]
-          : "other";
+      let object = "other";
+
+      if (parts.length > 1) {
+        const rawObject = parts[1];
+        object = rawObject.endsWith("s") ? rawObject.slice(0, -1) : rawObject;
+      }
+
       if (!groups[object]) {
         groups[object] = [];
       }
       groups[object].push(permission);
       return groups;
     },
-    {}
+    {} as Record<string, typeof permissions>,
   );
 
   // Sort categories

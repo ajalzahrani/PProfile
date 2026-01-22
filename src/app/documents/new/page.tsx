@@ -5,12 +5,7 @@ import { Controller, useForm, useFormState } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
-import { PageShell } from "@/components/page-shell";
-import { PageHeader } from "@/components/page-header";
-import { Switch } from "@/components/ui/swtich";
 import {
   documentSchema,
   type DocumentFormValues,
@@ -18,18 +13,6 @@ import {
 import Link from "next/link";
 import { ChevronLeft, FileQuestion } from "lucide-react";
 import { SimplePdfViewer } from "../../../components/pdf-components/simple-pdf-viewer";
-import { Textarea } from "@/components/ui/textarea";
-import { DatePicker } from "@/components/ui/date-picker";
-import { getCategoriesForSelect } from "@/actions/categories";
-import { getDepartmentsForSelect } from "@/actions/departments";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { DocumentScopeDialog } from "../components/document-scope";
 import { uploadCertificateAction } from "@/actions/documents";
 import { CertificateUploadForm } from "../components/certificate-upload-form";
 

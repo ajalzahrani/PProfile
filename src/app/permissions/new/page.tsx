@@ -49,7 +49,7 @@ export default function NewPermissionPage() {
     defaultValues: {
       code: "",
       name: "",
-      description: "",
+      description: undefined,
     },
   });
 

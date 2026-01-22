@@ -9,8 +9,6 @@ import {
   type DocumentFormValues,
   type UpdateDocumentScopeFormValues,
   type SaveInput,
-  type SendDocumentMessageInput,
-  sendDocumentMessageSchema,
   FileType,
   DeletionType,
   STATUS_TRANSITIONS,
@@ -19,7 +17,6 @@ import { revalidatePath } from "next/cache";
 import { rm, mkdir } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
-import { z } from "zod";
 import { writeFile } from "fs";
 import { existsSync } from "fs";
 import { PrismaClient } from "@prisma/client";
@@ -134,13 +131,13 @@ export async function getDocumentById(documentId: string) {
 }
 
 // Add version comparison and rollback capabilities
-export async function compareVersions(
-  documentId: string,
-  version1: number,
-  version2: number,
-) {
-  // Implementation for version comparison
-}
+// export async function compareVersions(
+//   documentId: string,
+//   version1: number,
+//   version2: number,
+// ) {
+//   // Implementation for version comparison
+// }
 
 export async function changeDocumentStatus(
   documentId: string,

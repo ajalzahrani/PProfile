@@ -25,7 +25,7 @@ export default async function DocumentComparePage({
   if (!documentResponse.success) {
     if (documentResponse.error === "Unauthorized") {
       redirect(
-        "/login?callbackUrl=" + encodeURIComponent(`/documents/${documentId}`)
+        "/login?callbackUrl=" + encodeURIComponent(`/documents/${documentId}`),
       );
     } else {
       notFound();
@@ -44,7 +44,7 @@ export default async function DocumentComparePage({
   }
 
   // Get file URLs for both versions
-  const currentFileUrl = document.signedUrl ?? currentVersion.filePath;
+  // const currentFileUrl = document.signedUrl ?? currentVersion.filePath;
   const compareFileUrl = compareVersion.filePath;
 
   return (
@@ -78,7 +78,7 @@ export default async function DocumentComparePage({
             )}
           </div>
           <div className="flex-1 border rounded-b-lg overflow-hidden">
-            <PdfViewer fileUrl={currentFileUrl} />
+            {/* <PdfViewer fileUrl={currentFileUrl} /> */}
           </div>
         </div>
 

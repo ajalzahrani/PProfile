@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { updateCertificateRequirement } from "@/actions/document-configs";
 import { RequirementToggle } from "./components/requirement-toggle";
 import { PageShell } from "@/components/page-shell";
 import { PageHeader } from "@/components/page-header";
@@ -42,7 +41,8 @@ export default async function DocumentConfigurationPage() {
                 {categories.map((cat) => {
                   const req = requirements.find(
                     (r: any) =>
-                      r.jobTitleId === job.id && r.documentCategoryId === cat.id
+                      r.jobTitleId === job.id &&
+                      r.documentCategoryId === cat.id,
                   );
                   return (
                     <td key={cat.id} className="px-6 py-4 text-center">

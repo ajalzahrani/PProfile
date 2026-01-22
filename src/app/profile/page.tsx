@@ -6,14 +6,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ChevronLeft } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle } from "lucide-react";
-import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
-import { PermissionButton } from "@/components/auth/permission-button";
-import { checkServerPermission } from "@/lib/server-permissions";
-import { getCurrentUserFromDB } from "@/actions/auths";
 import { getPersonById } from "@/actions/persons";
 
 export default async function ProfilePage() {
@@ -64,7 +59,7 @@ export default async function ProfilePage() {
                 <AvatarFallback className="text-2xl">
                   {getInitials(
                     person.person?.firstName || "",
-                    person.person?.lastName || ""
+                    person.person?.lastName || "",
                   )}
                 </AvatarFallback>
               </Avatar>
@@ -131,7 +126,7 @@ export default async function ProfilePage() {
                     <dt className="text-sm font-medium text-muted-foreground">
                       Nationality
                     </dt>
-                    <dd>{person.person?.nationality.nameEn}</dd>
+                    <dd>{person.person?.nationality?.nameEn || ""}</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground">
@@ -213,7 +208,7 @@ export default async function ProfilePage() {
                     </dt>
                     <dd>
                       {new Date(
-                        person.person?.cardExpiryAt || ""
+                        person.person?.cardExpiryAt || "",
                       ).toLocaleDateString()}
                     </dd>
                   </div>
@@ -224,7 +219,7 @@ export default async function ProfilePage() {
                     <dd>
                       {person.person?.lastRenewalAt
                         ? new Date(
-                            person.person.lastRenewalAt
+                            person.person.lastRenewalAt,
                           ).toLocaleDateString()
                         : "Not specified"}
                     </dd>

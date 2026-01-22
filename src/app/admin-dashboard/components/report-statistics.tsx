@@ -1,14 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  FileText,
-  AlertCircle,
-  Users,
-  MapPin,
-  TrendingUp,
-  Activity,
-} from "lucide-react";
+import { FileText, AlertCircle, Users, Activity } from "lucide-react";
 
 interface StatisticsProps {
   statistics: {
@@ -56,7 +49,7 @@ export function ReportStatistics({ statistics }: StatisticsProps) {
             {statistics.totalOccurrences > 0
               ? `${Math.round(
                   (statistics.patientInvolved / statistics.totalOccurrences) *
-                    100
+                    100,
                 )}% of total`
               : "No data"}
           </p>

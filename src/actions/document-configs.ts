@@ -1,9 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { authOptions, getCurrentUser } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 
 export async function updateCertificateRequirement(formData: FormData) {
   const user = getCurrentUser();

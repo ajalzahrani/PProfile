@@ -136,49 +136,49 @@ export async function createPerson(formData: FormData) {
       pictureLink = await uploadFile(file);
     }
 
-    const newPerson = await prisma.person.create({
-      data: {
-        firstName: personData.firstName,
-        secondName: personData.secondName,
-        thirdName: personData.thirdName,
-        lastName: personData.lastName,
-        gender: personData.gender,
-        dob: personData.dob,
-        citizenship: personData.citizenship,
-        noriqama: personData.noriqama,
-        mrn: personData.mrn,
-        employeeNo: personData.employeeNo,
-        nationality: {
-          connect: { id: personData.nationalityId },
-        },
-        unit: personData.unitId
-          ? {
-              connect: { id: personData.unitId },
-            }
-          : undefined,
-        rank: personData.rankId
-          ? {
-              connect: { id: personData.rankId },
-            }
-          : undefined,
-        jobTitle: personData.jobTitleId
-          ? {
-              connect: { id: personData.jobTitleId },
-            }
-          : undefined,
-        sponsor: personData.sponsorId
-          ? {
-              connect: { id: personData.sponsorId },
-            }
-          : undefined,
-        pictureLink: pictureLink || null,
-        cardExpiryAt: personData.cardExpiryAt || new Date(),
-        isActive: personData.isActive,
-      },
-    });
+    // const newPerson = await prisma.person.create({
+    //   data: {
+    //     firstName: personData.firstName,
+    //     secondName: personData.secondName,
+    //     thirdName: personData.thirdName,
+    //     lastName: personData.lastName,
+    //     gender: personData.gender,
+    //     dob: personData.dob,
+    //     citizenship: personData.citizenship,
+    //     noriqama: personData.noriqama,
+    //     mrn: personData.mrn,
+    //     employeeNo: personData.employeeNo,
+    //     nationality: {
+    //       connect: { id: personData.nationalityId },
+    //     },
+    //     unit: personData.unitId
+    //       ? {
+    //           connect: { id: personData.unitId },
+    //         }
+    //       : undefined,
+    //     rank: personData.rankId
+    //       ? {
+    //           connect: { id: personData.rankId },
+    //         }
+    //       : undefined,
+    //     jobTitle: personData.jobTitleId
+    //       ? {
+    //           connect: { id: personData.jobTitleId },
+    //         }
+    //       : undefined,
+    //     sponsor: personData.sponsorId
+    //       ? {
+    //           connect: { id: personData.sponsorId },
+    //         }
+    //       : undefined,
+    //     pictureLink: pictureLink || null,
+    //     cardExpiryAt: personData.cardExpiryAt || new Date(),
+    //     isActive: personData.isActive,
+    //   },
+    // });
 
     revalidatePath("/persons");
-    return { success: true, person: newPerson };
+    return { success: true };
   } catch (error) {
     console.error("Error creating person:", error);
     return { success: false, error: "Error creating person", details: error };
@@ -249,7 +249,7 @@ export async function updatePerson(personId: string, formData: FormData) {
         const oldPicturePath = path.join(
           process.cwd(),
           "repo/images",
-          path.basename(currentPerson.pictureLink)
+          path.basename(currentPerson.pictureLink),
         );
         if (fs.existsSync(oldPicturePath)) {
           fs.unlinkSync(oldPicturePath);

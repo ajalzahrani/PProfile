@@ -13,7 +13,7 @@ interface PageParams {
 export default function ReviewPage({
   params,
 }: {
-  params: PageParams | Promise<PageParams>;
+  params: Promise<PageParams>;
 }) {
   const router = useRouter();
   const resolvedParams = use(params as Promise<PageParams>);

@@ -24,15 +24,17 @@ import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { deleteDepartment } from "@/actions/departments";
 
-type DepartmentWithRelations = Prisma.DepartmentGetPayload<{}>;
+// type DepartmentWithRelations = Prisma.DepartmentGetPayload<{}>;
+// type DepartmentWithRelations = Prisma.DepartmentGetPayload<{}>;
 
 interface DepartmentListProps {
-  departments: DepartmentWithRelations[];
+  departments: any[];
 }
 
 export function DepartmentList({ departments }: DepartmentListProps) {
-  const [departmentToDelete, setDepartmentToDelete] =
-    useState<DepartmentWithRelations | null>(null);
+  const [departmentToDelete, setDepartmentToDelete] = useState<any | null>(
+    null,
+  );
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteDepartment = async () => {
