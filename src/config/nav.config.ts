@@ -36,14 +36,30 @@ export const NAV_ITEMS: NavItem[] = [
     requiredPermissions: ["manage:admin-dashboards"],
   },
   {
-    label: "Documents",
-    href: "/documents",
-    requiredPermissions: ["manage:documents"],
+    label: "Certificates",
+    href: "/categories",
+    requiredPermissions: ["manage:categories"],
   },
   {
-    label: "Reports",
-    href: "/reports",
-    requiredPermissions: ["manage:reports"],
+    label: "Job Titles",
+    href: "/jobtitles",
+    requiredPermissions: ["manage:jobtitles"],
+  },
+  {
+    label: "Others",
+    requiredPermissions: ["manage:management"],
+    children: [
+      {
+        label: "Documents",
+        href: "/documents",
+        requiredPermissions: ["manage:documents"],
+      },
+      {
+        label: "Reports",
+        href: "/reports",
+        requiredPermissions: ["manage:reports"],
+      },
+    ],
   },
   {
     label: "Management",

@@ -135,6 +135,7 @@ model CertificateRequirement {
   documentCategoryId String
   isRequired         Boolean          @default(true) // Mandatory vs Optional
   requiresExpiry     Boolean          @default(true) // Does this cert need an expiry date?
+  isActive           Boolean?         @default(true) // Active by default
   
   jobTitle           JobTitle         @relation(fields: [jobTitleId], references: [id])
   documentCategory   DocumentCategory @relation(fields: [documentCategoryId], references: [id])

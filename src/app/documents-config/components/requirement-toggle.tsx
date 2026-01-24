@@ -2,27 +2,49 @@
 
 import { updateCertificateRequirement } from "@/actions/document-configs";
 import { useState, useEffect } from "react";
+import { DocumentConfigFormValues } from "@/actions/document-configs.validation";
+import { toast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
 
 export function RequirementToggle({ jobId, catId, initialData }: any) {
   const [isRequired, setIsRequired] = useState(
-    initialData?.isRequired || false
+    initialData?.isRequired || false,
   );
   const [requiresExpiry, setRequiresExpiry] = useState(
-    initialData?.requiresExpiry || false
+    initialData?.requiresExpiry || false,
   );
-
-  // useEffect(() => {
-  //   console.log(initialData);
-  // }, []);
+  const router = useRouter();
 
   const handleChange = async (mandatory: boolean, expiry: boolean) => {
-    const formData = new FormData();
-    formData.append("jobTitleId", jobId);
-    formData.append("categoryId", catId);
-    formData.append("isRequired", String(mandatory));
-    formData.append("requiresExpiry", String(expiry));
+    const payload: DocumentConfigFormValues = {
+      jobTitleId: jobId,
+      documentCategoryId: catId,
+      isRequired: mandatory,
+      requiresExpiry: expiry,
+      isActive: true,
+    };
 
-    await updateCertificateRequirement(formData);
+    try {
+      const result = await updateCertificateRequirement(payload);
+
+      if (result.success) {
+        toast({
+          title: "Certificate requirement updated successfully",
+        });
+        // router.push("/documents-config");
+      } else {
+        toast({
+          title: "Failed to update certificate requirement",
+          description: result.error,
+        });
+      }
+    } catch (error) {
+      console.error("Error creating department:", error);
+      toast({
+        title: "Failed to update certificate requirement",
+        description: "Please try again.",
+      });
+    }
   };
 
   return (

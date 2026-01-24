@@ -2,11 +2,17 @@ import { prisma } from "@/lib/prisma";
 import { RequirementToggle } from "./components/requirement-toggle";
 import { PageShell } from "@/components/page-shell";
 import { PageHeader } from "@/components/page-header";
+import { getJobTitles } from "@/actions/jobtitles";
+import { getCategories } from "@/actions/categories";
+import { getCertificateRequirements } from "@/actions/document-configs";
+import Link from "next/link";
+import { PlusCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default async function DocumentConfigurationPage() {
-  const jobTitles = await prisma.jobTitle.findMany();
-  const categories = await prisma.documentCategory.findMany();
-  const requirements = await prisma.certificateRequirement.findMany();
+  const jobTitles = await getJobTitles();
+  const categories = await getCategories();
+  const requirements = await getCertificateRequirements();
 
   return (
     <PageShell>
@@ -14,6 +20,12 @@ export default async function DocumentConfigurationPage() {
         heading="Certificate Compliance Manager"
         text="Upload and manage your professional credentials">
         {/* Optional Header Buttons */}
+        <Link href="/documents-config/new">
+          <Button>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add New Requirement
+          </Button>
+        </Link>
       </PageHeader>
 
       <div className="overflow-x-auto border rounded-lg">
@@ -23,7 +35,7 @@ export default async function DocumentConfigurationPage() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Job Title
               </th>
-              {categories.map((cat) => (
+              {categories.categories?.map((cat) => (
                 <th
                   key={cat.id}
                   className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
@@ -33,13 +45,13 @@ export default async function DocumentConfigurationPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {jobTitles.map((job) => (
+            {jobTitles.jobTitles?.map((job) => (
               <tr key={job.id}>
                 <td className="px-6 py-4 font-medium text-gray-900">
                   {job.nameEn}
                 </td>
-                {categories.map((cat) => {
-                  const req = requirements.find(
+                {categories.categories?.map((cat) => {
+                  const req = requirements.data?.find(
                     (r: any) =>
                       r.jobTitleId === job.id &&
                       r.documentCategoryId === cat.id,
