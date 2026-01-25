@@ -44,15 +44,10 @@ export async function getUsers() {
     const userRole = users.map((user) => user.role);
     const userDepartment = users.map((user) => user.department);
 
-    const role = nullToUndefined(userRole);
-    const department = nullToUndefined(userDepartment);
-
     return {
       success: true,
       users: users.map((user) => ({
         ...user,
-        role,
-        department,
       })),
     };
   } catch (error) {
@@ -216,14 +211,15 @@ export async function updateUser(
       });
 
       // Update department assignments
-      await tx.user.update({
-        where: { id: userId },
-        data: {
-          department: {
-            connect: { id: validatedData.department.id },
+      if (validatedData.department)
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            department: {
+              connect: { id: validatedData.department.id },
+            },
           },
-        },
-      });
+        });
 
       // Update role assignments
       await tx.user.update({

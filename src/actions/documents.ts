@@ -557,48 +557,6 @@ export async function uploadCertificateAction(
   }
 }
 
-export async function getUserComplianceStatus(userId: string) {
-  // 1. Get user's job title
-  const person = await prisma.person.findFirst({
-    where: { userId },
-    select: { jobTitleId: true },
-  });
-
-  if (!person?.jobTitleId) return [];
-
-  // 2. Get requirements for that job title
-  const requirements = await prisma.certificateRequirement.findMany({
-    where: { jobTitleId: person.jobTitleId },
-    include: { documentCategory: true },
-  });
-
-  // 3. Get user's existing documents for these categories
-  const userDocs = await prisma.document.findMany({
-    where: {
-      createdBy: userId,
-      categoryId: { in: requirements.map((r) => r.documentCategoryId) },
-    },
-    include: {
-      status: true,
-      currentVersion: true,
-    },
-  });
-
-  // 4. Map them together
-  return requirements.map((req: any) => {
-    const doc = userDocs.find((d) => d.categoryId === req.documentCategoryId);
-    // Add filePath to your mapping in documents.ts -> getUserComplianceStatus
-    return {
-      requirement: req,
-      categoryName: req.documentCategory.name,
-      status: doc ? doc.status.name : "Missing",
-      expiryDate: doc?.currentVersion?.expirationDate,
-      documentId: doc?.id,
-      filePath: doc?.currentVersion?.filePath, // Added for direct viewing
-    };
-  });
-}
-
 /**
  * Update a document
  */

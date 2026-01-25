@@ -435,6 +435,11 @@ async function main() {
       description: "Ability to approve documents",
     },
     {
+      code: "manage:document-configs",
+      name: "Manage documents configurations",
+      description: "Ability to view document configuration",
+    },
+    {
       code: "add-new-requirement:documents",
       name: "Add New Requirement",
       description:
@@ -444,6 +449,11 @@ async function main() {
       code: "manage-compliance:documents",
       name: "Manage compliance documents",
       description: "Ability to view compliance documents",
+    },
+    {
+      code: "manage:profiles",
+      name: "Manage profiles",
+      description: "Ability to view profile page",
     },
     /* 
     

@@ -8,6 +8,62 @@ import {
   documentConfigSchema,
 } from "./document-configs.validation";
 
+export async function getUserComplianceStatus(userId: string) {
+  const user = getCurrentUser();
+
+  if (!user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    // 1. Get user's job title
+    const person = await prisma.person.findFirst({
+      where: { userId },
+      select: { jobTitleId: true },
+    });
+
+    if (!person?.jobTitleId)
+      return { success: false, error: "No job title found" };
+
+    // 2. Get requirements for that job title
+    const requirements = await prisma.certificateRequirement.findMany({
+      where: { jobTitleId: person.jobTitleId, isActive: true },
+      include: { documentCategory: true },
+    });
+
+    // 3. Get user's existing documents for these categories
+    const userDocs = await prisma.document.findMany({
+      where: {
+        createdBy: userId,
+        categoryId: { in: requirements.map((r) => r.documentCategoryId) },
+      },
+      include: {
+        status: true,
+        currentVersion: true,
+      },
+    });
+
+    // 4. Map them together
+    const data = requirements.map((req: any) => {
+      const doc = userDocs.find((d) => d.categoryId === req.documentCategoryId);
+      // Add filePath to your mapping in documents.ts -> getUserComplianceStatus
+      return {
+        requirement: req,
+        categoryName: req.documentCategory.name,
+        status: doc ? doc.status.name : "Missing",
+        expiryDate: doc?.currentVersion?.expirationDate,
+        documentId: doc?.id,
+        filePath: doc?.currentVersion?.filePath, // Added for direct viewing
+      };
+    });
+
+    return { success: true, data };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: "Failed to fetch requirements" };
+  }
+}
+
 export async function getCertificateRequirements() {
   const user = getCurrentUser();
 
@@ -39,6 +95,8 @@ export async function updateCertificateRequirement(
     return { success: false, error: "Invalid form data" };
   }
 
+  console.log("isActive action value: ", validatedFields.data.isActive);
+
   try {
     await prisma.certificateRequirement.upsert({
       where: {
@@ -50,14 +108,14 @@ export async function updateCertificateRequirement(
       update: {
         isRequired: validatedFields.data.isRequired,
         requiresExpiry: validatedFields.data.requiresExpiry,
-        isActive: validatedFields.data.isActive ?? true,
+        isActive: validatedFields.data.isActive,
       },
       create: {
         jobTitleId: validatedFields.data.jobTitleId,
         documentCategoryId: validatedFields.data.documentCategoryId,
         isRequired: validatedFields.data.isRequired,
         requiresExpiry: validatedFields.data.requiresExpiry,
-        isActive: validatedFields.data.isActive ?? true,
+        isActive: validatedFields.data.isActive,
       },
     });
 
