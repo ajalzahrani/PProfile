@@ -38,16 +38,25 @@ async function deploy() {
 
     // Log application version and prompt for confirmation
     console.log("Current app version:", pkg.version);
-    const confirmation = await getConfirmation();
+    const deploymentConfirmation = await getConfirmation(
+      "Do you want to continue with deployment? (y/n): ",
+    );
 
-    if (confirmation !== "y") {
+    if (deploymentConfirmation !== "y") {
       console.log("Deployment cancelled by user");
       process.exit(0);
     }
 
-    // Build the application
-    console.log("Building application...");
-    await execPromise("npm run build");
+    // Ask user for build confirmation
+    const buildConfirmation = await getConfirmation(
+      "Do you want to build the application? (y/n): ",
+    );
+
+    if (buildConfirmation === "y") {
+      // Build the application
+      console.log("Building application...");
+      await execPromise("npm run build");
+    }
 
     // Ensure destination exists
     console.log("Creating destination directory if needed...");
@@ -149,20 +158,17 @@ async function selectServerDestination() {
   });
 }
 
-async function getConfirmation() {
+async function getConfirmation(message) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
   return new Promise((resolve) => {
-    rl.question(
-      "Do you want to continue with deployment? (y/n): ",
-      (answer) => {
-        rl.close();
-        resolve(answer.toLowerCase());
-      },
-    );
+    rl.question(message, (answer) => {
+      rl.close();
+      resolve(answer.toLowerCase());
+    });
   });
 }
 
