@@ -86,9 +86,11 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(data && (data.uploaded / data.totalRequired) * 100)?.toFixed(
-                0,
-              ) || 0}
+              {data &&
+              !isNaN(data.uploaded / data.totalRequired) &&
+              data.totalRequired > 0
+                ? ((data.uploaded / data.totalRequired) * 100).toFixed(0)
+                : 0}
               %
             </div>
             <p className="text-xs text-muted-foreground">

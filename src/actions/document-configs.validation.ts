@@ -7,7 +7,7 @@ export const documentConfigSchema = z.object({
   documentCategoryId: z.string().min(1, "Document Category is required"),
   isRequired: z.boolean(),
   requiresExpiry: z.boolean(),
-  isActive: z.boolean().optional(),
+  isActive: z.boolean(),
 });
 
 export type DocumentConfigFormValues = z.infer<typeof documentConfigSchema>;

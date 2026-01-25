@@ -18,7 +18,9 @@ const userRoleSchema = roleSchema.pick({
   name: true,
   description: true,
 });
-const userDepartmentSchema = departmentSchema.pick({ id: true, name: true });
+const userDepartmentSchema = departmentSchema
+  .pick({ id: true, name: true })
+  .nullable();
 
 export const userFormSchema = userSchema.extend({
   role: userRoleSchema,

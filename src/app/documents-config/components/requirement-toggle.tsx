@@ -13,15 +13,23 @@ export function RequirementToggle({ jobId, catId, initialData }: any) {
   const [requiresExpiry, setRequiresExpiry] = useState(
     initialData?.requiresExpiry || false,
   );
-  const router = useRouter();
+  const [isActive, setIsActive] = useState(initialData?.isActive || false);
 
-  const handleChange = async (mandatory: boolean, expiry: boolean) => {
+  useEffect(() => {
+    console.log("initialData", initialData);
+  }, []);
+
+  const handleChange = async (
+    mandatory: boolean,
+    expiry: boolean,
+    isActive: boolean,
+  ) => {
     const payload: DocumentConfigFormValues = {
       jobTitleId: jobId,
       documentCategoryId: catId,
       isRequired: mandatory,
       requiresExpiry: expiry,
-      isActive: true,
+      isActive,
     };
 
     try {
@@ -48,14 +56,14 @@ export function RequirementToggle({ jobId, catId, initialData }: any) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-2 text-xs">
+    <div className="flex flex-col gap-2 text-xs">
       <label className="flex items-center gap-1">
         <input
           type="checkbox"
           checked={isRequired}
           onChange={(e) => {
             setIsRequired(e.target.checked);
-            handleChange(e.target.checked, requiresExpiry);
+            handleChange(e.target.checked, requiresExpiry, isActive);
           }}
         />
         Required
@@ -66,10 +74,21 @@ export function RequirementToggle({ jobId, catId, initialData }: any) {
           checked={requiresExpiry}
           onChange={(e) => {
             setRequiresExpiry(e.target.checked);
-            handleChange(isRequired, e.target.checked);
+            handleChange(isRequired, e.target.checked, isActive);
           }}
         />
         Has Expiry
+      </label>
+      <label className="flex items-center gap-1">
+        <input
+          type="checkbox"
+          checked={isActive}
+          onChange={(e) => {
+            setIsActive(e.target.checked);
+            handleChange(isRequired, requiresExpiry, e.target.checked);
+          }}
+        />
+        Active
       </label>
     </div>
   );

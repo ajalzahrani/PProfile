@@ -26,10 +26,14 @@ interface ComplianceItem {
 }
 
 interface DocumentListProps {
-  complianceItems: ComplianceItem[];
+  complianceItems: ComplianceItem[] | undefined;
 }
 
 export function DocumentList({ complianceItems }: DocumentListProps) {
+  if (!complianceItems) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {complianceItems.map((item) => (
