@@ -389,57 +389,15 @@ async function main() {
   });
 
   const permissions = [
-    // Admin permissions
-    {
-      code: "admin:all",
-      name: "Manage All",
-      description: "Ability to view all pages",
-    },
-    {
-      code: "manage:management",
-      name: "Manage System",
-      description: "Ability to view management and users pages",
-    },
-    {
-      code: "manage:users",
-      name: "Manage users",
-      description: "Ability to view users pages",
-    },
-    {
-      code: "manage:roles",
-      name: "Manage roles",
-      description: "Ability to view roles pages",
-    },
-    {
-      code: "manage:departments",
-      name: "Manage Departments",
-      description: "Ability to view departments pages",
-    },
-    {
-      code: "manage:permissions",
-      name: "Manage Permissions",
-      description: "Ability to view permissions pages",
-    },
+    /* 
+    
+              Document Permissions 
+    
+    */
     {
       code: "manage:documents",
       name: "Manage Documents",
       description: "Ability to view documents pages",
-    },
-    // HR Employee permissions
-    {
-      code: "manage:employees",
-      name: "Manage Employees",
-      description: "Ability to view employees pages",
-    },
-    {
-      code: "manage:reports",
-      name: "Manage Reports",
-      description: "Ability to view reports pages",
-    },
-    {
-      code: "manage:dashboards",
-      name: "Manage Dashboards",
-      description: "Ability to view dashboards pages",
     },
     {
       code: "create:document",
@@ -475,6 +433,67 @@ async function main() {
       code: "approve:document",
       name: "Approve Document",
       description: "Ability to approve documents",
+    },
+    {
+      code: "add-new-requirement:documents",
+      name: "Add New Requirement",
+      description:
+        "Ability to add new requirements for document configurations",
+    },
+    {
+      code: "manage-compliance:documents",
+      name: "Manage compliance documents",
+      description: "Ability to view compliance documents",
+    },
+    /* 
+    
+              Sysetm ADministrator 
+    
+    */
+    {
+      code: "admin:all",
+      name: "Manage All",
+      description: "Ability to view all pages",
+    },
+    {
+      code: "manage:management",
+      name: "Manage System",
+      description: "Ability to view management and users pages",
+    },
+    {
+      code: "manage:users",
+      name: "Manage users",
+      description: "Ability to view users pages",
+    },
+    {
+      code: "manage:roles",
+      name: "Manage roles",
+      description: "Ability to view roles pages",
+    },
+    {
+      code: "manage:departments",
+      name: "Manage Departments",
+      description: "Ability to view departments pages",
+    },
+    {
+      code: "manage:permissions",
+      name: "Manage Permissions",
+      description: "Ability to view permissions pages",
+    },
+    {
+      code: "manage:employees",
+      name: "Manage Employees",
+      description: "Ability to view employees pages",
+    },
+    {
+      code: "manage:reports",
+      name: "Manage Reports",
+      description: "Ability to view reports pages",
+    },
+    {
+      code: "manage:dashboards",
+      name: "Manage Dashboards",
+      description: "Ability to view dashboards pages",
     },
   ];
 

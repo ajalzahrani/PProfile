@@ -8,7 +8,7 @@ import { getServerSession } from "next-auth";
 import { RedirectButton } from "@/components/redirect-button";
 
 export default async function DocumentsPage() {
-  await checkServerPermission("manage:compliance-documents");
+  await checkServerPermission("manage-compliance:documents");
 
   const session = await getServerSession(authOptions);
 

@@ -39,32 +39,32 @@ export default function NewDocumentConfigPage() {
 
   const onSubmit = async (data: DocumentConfigFormValues) => {
     console.log("onSubmit called", data);
-    setIsSubmitting(true);
-    try {
-      const result = await createDepartment({
-        name: data.name,
-      });
+    // setIsSubmitting(true);
+    // try {
+    //   const result = await createDepartment({
+    //     name: data.name,
+    //   });
 
-      if (result.success) {
-        toast({
-          title: "Department created successfully",
-        });
-        router.push("/departments");
-      } else {
-        toast({
-          title: "Failed to create department",
-          description: result.error,
-        });
-      }
-    } catch (error) {
-      console.error("Error creating department:", error);
-      toast({
-        title: "Failed to create department",
-        description: "Please try again.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    //   if (result.success) {
+    //     toast({
+    //       title: "Department created successfully",
+    //     });
+    //     router.push("/departments");
+    //   } else {
+    //     toast({
+    //       title: "Failed to create department",
+    //       description: result.error,
+    //     });
+    //   }
+    // } catch (error) {
+    //   console.error("Error creating department:", error);
+    //   toast({
+    //     title: "Failed to create department",
+    //     description: "Please try again.",
+    //   });
+    // } finally {
+    //   setIsSubmitting(false);
+    // }
   };
 
   return (
@@ -75,13 +75,15 @@ export default function NewDocumentConfigPage() {
           <div className="space-y-2">
             <Label htmlFor="name">Department Name</Label>
             <Input
-              id="name"
-              {...register("name")}
+              id="jobTitleId"
+              {...register("jobTitleId")}
               placeholder="Enter department name"
               className="mt-1"
             />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
+            {errors.jobTitleId && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.jobTitleId.message}
+              </p>
             )}
           </div>
         </div>

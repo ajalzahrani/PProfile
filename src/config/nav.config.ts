@@ -18,7 +18,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     label: "Compliance Documents",
     href: "/user-documents",
-    requiredPermissions: ["manage:compliance-documents"],
+    requiredPermissions: ["manage-compliance:documents"],
   },
   {
     label: "Profile",

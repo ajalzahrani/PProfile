@@ -8,6 +8,7 @@ import { getCertificateRequirements } from "@/actions/document-configs";
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PermissionCheck } from "@/components/auth/permission-check";
 
 export default async function DocumentConfigurationPage() {
   const jobTitles = await getJobTitles();
@@ -20,12 +21,14 @@ export default async function DocumentConfigurationPage() {
         heading="Certificate Compliance Manager"
         text="Upload and manage your professional credentials">
         {/* Optional Header Buttons */}
-        <Link href="/documents-config/new">
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add New Requirement
-          </Button>
-        </Link>
+        <PermissionCheck required="add-new-requirement:documents">
+          <Link href="/documents-config/new">
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add New Requirement
+            </Button>
+          </Link>
+        </PermissionCheck>
       </PageHeader>
 
       <div className="overflow-x-auto border rounded-lg">
