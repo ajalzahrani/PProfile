@@ -139,14 +139,7 @@ export default function NewUserPage() {
 
   return (
     <PageShell>
-      <PageHeader heading="New User" text="Create a new user">
-        <Button variant="outline" asChild>
-          <Link href="/users">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Users
-          </Link>
-        </Button>
-      </PageHeader>
+      <PageHeader heading="New User" text="Create a new user"></PageHeader>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         <div className="space-y-4">

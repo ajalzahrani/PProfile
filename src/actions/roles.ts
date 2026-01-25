@@ -23,11 +23,11 @@ export async function getRoles() {
       },
     });
 
-    const roles = nullToUndefined(queryResult);
+    const roles: RoleFormValues[] = queryResult;
 
     return {
       success: true,
-      roles: roles,
+      roles,
     };
   } catch (error) {
     console.error("Error fetching roles:", error);

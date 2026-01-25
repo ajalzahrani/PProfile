@@ -26,7 +26,7 @@ export async function getPermissions() {
       },
     });
 
-    const permissions = nullToUndefined(queryResult);
+    const permissions: PermissionFormValues[] = queryResult;
 
     return {
       success: true,

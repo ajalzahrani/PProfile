@@ -29,13 +29,7 @@ import { AlertCircle, ArrowLeft } from "lucide-react";
 import { createPermission } from "@/actions/permissions";
 import { type PermissionFormValues } from "@/actions/permissions.validation";
 import { useToast } from "@/components/ui/use-toast";
-
-// Form schema for new permission
-const permissionFormSchema = z.object({
-  code: z.string().min(2, "Code must be at least 2 characters"),
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  description: z.string().optional(),
-});
+import { permissionSchema } from "@/actions/permissions.validation";
 
 export default function NewPermissionPage() {
   const router = useRouter();
@@ -45,7 +39,7 @@ export default function NewPermissionPage() {
 
   // Initialize the form
   const form = useForm<PermissionFormValues>({
-    resolver: zodResolver(permissionFormSchema),
+    resolver: zodResolver(permissionSchema),
     defaultValues: {
       code: "",
       name: "",

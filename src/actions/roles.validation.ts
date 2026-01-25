@@ -5,7 +5,7 @@ import { PermissionFormValues } from "./permissions.validation";
 export const roleSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, "Name must be at least 2 characters"),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
 });
 
 export type RoleFormValues = z.infer<typeof roleSchema>;
