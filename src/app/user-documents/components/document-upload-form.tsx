@@ -12,7 +12,8 @@ interface Props {
 }
 
 // Define a constant for your limit (e.g., 5MB)
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+// const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE || "5000000");
 
 function SubmitButton() {
   const { pending } = useFormStatus();

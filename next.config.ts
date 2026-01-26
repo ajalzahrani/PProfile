@@ -14,11 +14,11 @@ const nextConfig: NextConfig = {
     port: process.env.PORT || 3004,
   },
   // Configure uploaded file size limit for server actions
-  // experimental: {
-  //   serverActions: {
-  //     bodySizeLimit: "10mb", // Set your desired limit (e.g., '2mb', '10mb', '1gb')
-  //   },
-  // },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "5mb", // Set your desired limit (e.g., '2mb', '10mb', '1gb')
+    },
+  },
 };
 
 export default nextConfig;
