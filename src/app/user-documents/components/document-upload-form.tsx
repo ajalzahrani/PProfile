@@ -2,7 +2,7 @@
 
 import { useFormStatus } from "react-dom";
 import { uploadCertificateAction } from "@/actions/documents";
-import { useState, useActionState } from "react";
+import { useState, useActionState, ChangeEvent } from "react";
 import { Progress } from "@/components/ui/progress";
 
 interface Props {
@@ -10,6 +10,9 @@ interface Props {
   categoryName: string;
   requiresExpiry: boolean; // Passed from your CertificateRequirement logic
 }
+
+// Define a constant for your limit (e.g., 5MB)
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -30,6 +33,24 @@ export function DocumentUploadForm({
 }: Props) {
   const [state, action] = useActionState(uploadCertificateAction, null);
   const [fileName, setFileName] = useState<string>("");
+  const [clientError, setClientError] = useState<string | null>(null);
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setClientError(null); // Reset error on new selection
+
+    if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        setClientError(
+          `File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max limit is 5MB.`,
+        );
+        setFileName("");
+        e.target.value = ""; // Clear the input
+        return;
+      }
+      setFileName(file.name);
+    }
+  };
 
   return (
     <div className=" p-4 mb-4 bg-white ">
@@ -53,7 +74,7 @@ export function DocumentUploadForm({
             name="file"
             accept=".pdf"
             required
-            onChange={(e) => setFileName(e.target.files?.[0]?.name || "")}
+            onChange={handleFileChange}
             className="mt-1 block w-full text-sm text-slate-500
               file:mr-4 file:py-2 file:px-4
               file:rounded-full file:border-0
@@ -78,15 +99,24 @@ export function DocumentUploadForm({
           </div>
         )}
 
-        {/* Upload Status Bar */}
-        <FormStatus progress={state?.success ? 100 : 0} />
+        {/* Show Progress Bar only if there's no client error */}
+        {!clientError && <FormStatus progress={state?.success ? 100 : 0} />}
 
         <SubmitButton />
 
-        {/* Feedback Messages */}
+        {/* Client-side Validation Error */}
+        {clientError && (
+          <p className="p-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded">
+            ⚠️ {clientError}
+          </p>
+        )}
+
+        {/* Server-side Success Message */}
         {state?.success && (
           <p className="text-green-600 text-sm">✅ Uploaded successfully!</p>
         )}
+
+        {/* Server-side Error Message */}
         {state?.success === false && (
           <p className="text-red-600 text-sm">❌ Error: {state.error}</p>
         )}
