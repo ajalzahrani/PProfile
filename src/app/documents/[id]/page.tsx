@@ -37,7 +37,7 @@ export default async function DocumentPage({
   }
 
   const document = documentResponse.documents?.[0];
-  console.log({ document });
+
   const currentVersion = document?.currentVersion ?? null;
 
   if (!document || !currentVersion) {

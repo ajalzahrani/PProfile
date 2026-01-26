@@ -95,8 +95,6 @@ export async function updateCertificateRequirement(
     return { success: false, error: "Invalid form data" };
   }
 
-  console.log("isActive action value: ", validatedFields.data.isActive);
-
   try {
     await prisma.certificateRequirement.upsert({
       where: {

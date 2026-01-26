@@ -80,7 +80,18 @@ export function RequirementToggle({ jobId, catId, initialData }: any) {
           checked={isActive}
           onChange={(e) => {
             setIsActive(e.target.checked);
-            handleChange(isRequired, requiresExpiry, e.target.checked);
+            if (e.target.checked === false) {
+              console.log("state :", e.target.checked);
+              setIsRequired(false);
+              setRequiresExpiry(false);
+              handleChange(
+                e.target.checked,
+                e.target.checked,
+                e.target.checked,
+              );
+            } else {
+              handleChange(isRequired, requiresExpiry, e.target.checked);
+            }
           }}
         />
         Active
