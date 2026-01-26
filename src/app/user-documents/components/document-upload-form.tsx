@@ -3,6 +3,7 @@
 import { useFormStatus } from "react-dom";
 import { uploadCertificateAction } from "@/actions/documents";
 import { useState, useActionState } from "react";
+import { Progress } from "@/components/ui/progress";
 
 interface Props {
   categoryId: string;
@@ -77,6 +78,9 @@ export function DocumentUploadForm({
           </div>
         )}
 
+        {/* Upload Status Bar */}
+        <FormStatus progress={state?.success ? 100 : 0} />
+
         <SubmitButton />
 
         {/* Feedback Messages */}
@@ -87,6 +91,24 @@ export function DocumentUploadForm({
           <p className="text-red-600 text-sm">❌ Error: {state.error}</p>
         )}
       </form>
+    </div>
+  );
+}
+
+// Sub-component to handle internal form status
+function FormStatus({ progress }: { progress: number }) {
+  const { pending } = useFormStatus();
+
+  if (!pending && progress === 0) return null;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between text-xs text-muted-foreground">
+        <span>{pending ? "Uploading..." : "Complete"}</span>
+        <span>{pending ? "Processing" : "100%"}</span>
+      </div>
+      {/* If pending, we show an indeterminate-like animation via CSS or a fixed value */}
+      <Progress value={pending ? 65 : progress} className="h-2" />
     </div>
   );
 }
