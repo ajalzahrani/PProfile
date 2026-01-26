@@ -1,10 +1,9 @@
 "use client";
 
 import { updateCertificateRequirement } from "@/actions/document-configs";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DocumentConfigFormValues } from "@/actions/document-configs.validation";
 import { toast } from "@/components/ui/use-toast";
-import { useRouter } from "next/navigation";
 
 export function RequirementToggle({ jobId, catId, initialData }: any) {
   const [isRequired, setIsRequired] = useState(
