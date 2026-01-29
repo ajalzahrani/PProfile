@@ -4,6 +4,7 @@ import { useFormStatus } from "react-dom";
 import { uploadCertificateAction } from "@/actions/documents";
 import { useState, useActionState, ChangeEvent } from "react";
 import { Progress } from "@/components/ui/progress";
+import { Loader2 } from "lucide-react";
 
 interface Props {
   categoryId: string;
@@ -35,22 +36,35 @@ export function DocumentUploadForm({
   const [state, action] = useActionState(uploadCertificateAction, null);
   const [fileName, setFileName] = useState<string>("");
   const [clientError, setClientError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    setClientError(null); // Reset error on new selection
+    if (!file) return;
 
-    if (file) {
-      if (file.size > MAX_FILE_SIZE) {
-        setClientError(
-          `File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max limit is 5MB.`,
-        );
-        setFileName("");
-        e.target.value = ""; // Clear the input
-        return;
-      }
-      setFileName(file.name);
-    }
+    // Force the spinner to show by deferring the heavy work
+    setIsProcessing(true);
+    setClientError(null);
+
+    // Using requestAnimationFrame ensures the "isProcessing" state
+    // is actually painted to the screen before the main thread blocks.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // Now do the validation logic
+        if (file.size > 5 * 1024 * 1024) {
+          // 5MB Limit
+          // alert("File too large");
+          setClientError(
+            `File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max limit is 5MB.`,
+          );
+          e.target.value = "";
+          setFileName("");
+        } else {
+          setFileName(file.name);
+        }
+        setIsProcessing(false);
+      });
+    });
   };
 
   return (
@@ -67,22 +81,30 @@ export function DocumentUploadForm({
 
         {/* File Input */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
             Document (PDF)
+            {isProcessing && (
+              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+            )}
           </label>
-          <input
-            type="file"
-            name="file"
-            accept=".pdf"
-            required
-            onChange={handleFileChange}
-            className="mt-1 block w-full text-sm text-slate-500
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-full file:border-0
-              file:text-sm file:font-semibold
-              file:bg-blue-50 file:text-blue-700
-              hover:file:bg-blue-100"
-          />
+
+          <div className="relative">
+            <input
+              type="file"
+              name="file"
+              accept=".pdf"
+              required
+              // 1. Trigger loading when the user clicks so the spinner is ALREADY there
+              onClick={() => setIsProcessing(true)}
+              onChange={handleFileChange}
+              className={`mt-1 block w-full text-sm text-slate-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-50 file:text-blue-700
+                ${isProcessing ? "opacity-40 pointer-events-none" : ""}`}
+            />
+          </div>
         </div>
 
         {/* Conditional Expiry Date */}
