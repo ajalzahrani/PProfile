@@ -35,15 +35,11 @@
 
 ### Document Approval
 
-- [ ] Block document from editing once department approved a document.
-- [ ] Interduce partial approve state. Indicating which department has approved the document.
-
-### Document Versioning and document structure
-
-- [ ] Document in draft state should be in draft folder, with multiple versions.
-- [ ] Document in published state should be in published folder, with multiple final versions.
-- [ ] When document is published, move only approved one final version to published folder.
-- [ ] Abort upload process if version is not created or any error occurs.
+- [ ] Should has Approval role
+- [ ] Should appove completed profile.
+- [ ] Should allow Approval role to edit profile to upload new documents
+- [ ] Should include user location Should view all requiremnts for a
+      jobtitle or location
 
 ### How to solve
 
