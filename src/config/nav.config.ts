@@ -13,7 +13,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     label: "Dashboard",
     href: "/dashboard",
-    requiredPermissions: ["manage:dashboard"],
+    requiredPermissions: ["manage:dashboards"],
   },
   {
     label: "Compliance Documents",

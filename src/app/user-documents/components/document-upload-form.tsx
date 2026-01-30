@@ -51,11 +51,13 @@ export function DocumentUploadForm({
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         // Now do the validation logic
-        if (file.size > 5 * 1024 * 1024) {
+        if (file.size > MAX_FILE_SIZE) {
           // 5MB Limit
           // alert("File too large");
           setClientError(
-            `File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max limit is 5MB.`,
+            `File is too large (${(file.size / 1024 / 1024).toFixed(
+              1
+            )}MB). Max limit is ${MAX_FILE_SIZE / 1024 / 1024}MB.`
           );
           e.target.value = "";
           setFileName("");
@@ -136,12 +138,16 @@ export function DocumentUploadForm({
 
         {/* Server-side Success Message */}
         {state?.success && (
-          <p className="text-green-600 text-sm">✅ Uploaded successfully!</p>
+          <p className="p-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded">
+            ✅ Uploaded successfully!
+          </p>
         )}
 
         {/* Server-side Error Message */}
         {state?.success === false && (
-          <p className="text-red-600 text-sm">❌ Error: {state.error}</p>
+          <p className="p-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded">
+            ❌ Error: {state.error}
+          </p>
         )}
       </form>
     </div>
