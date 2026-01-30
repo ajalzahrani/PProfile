@@ -7,6 +7,7 @@ import {
   DocumentComplianceDashboardDTO,
   CategoryComplianceDTO,
 } from "./dashboards.validation";
+import { now } from "next-auth/client/_utils";
 
 export async function getAdminDashboardData() {
   const user = await getCurrentUser();
@@ -64,7 +65,7 @@ export async function getAdminDashboardData() {
 
       const categories: CategoryComplianceDTO[] = requirements.map((req) => {
         const doc = documents.find(
-          (d) => d.categoryId === req.documentCategoryId,
+          (d) => d.categoryId === req.documentCategoryId
         );
 
         const expirationDate = doc?.currentVersion?.expirationDate ?? null;
@@ -159,11 +160,13 @@ export async function getUserDashboardData() {
       totalRequired: number;
       uploaded: number;
       remaining: number;
+      compliancePercent: number;
     } = {
       totalDocuments: 0,
       totalRequired: 0,
       uploaded: 0,
       remaining: 0,
+      compliancePercent: 0,
     };
 
     if (person) {
@@ -185,10 +188,10 @@ export async function getUserDashboardData() {
       });
 
       const requiredCategoryIds = requiredCategories.map(
-        (r) => r.documentCategoryId,
+        (r) => r.documentCategoryId
       );
 
-      const uploaded = await prisma.document.findMany({
+      const uploadedDocuments = await prisma.document.findMany({
         where: {
           createdBy: person.userId,
           categoryId: {
@@ -198,20 +201,53 @@ export async function getUserDashboardData() {
         },
         select: {
           categoryId: true,
+          status: {
+            select: {
+              name: true,
+            },
+          },
+          currentVersion: {
+            select: {
+              expirationDate: true,
+            },
+          },
         },
       });
 
       // Deduplicate by category
-      const uploadedCategoryCount = new Set(uploaded.map((d) => d.categoryId))
-        .size;
+      const uploadedCategoryCount = new Set(
+        uploadedDocuments.map((d) => d.categoryId)
+      ).size;
 
-      const remaining = totalRequired - uploadedCategoryCount;
+      // Compliance percentage is the number of unique categories that have at least one approved certificate
+      // that is not expired (if expiration date exists)
+      const now = new Date();
+
+      // Group documents by category and check if each category has at least one compliant document
+      const compliantCategories = new Set<string>();
+
+      uploadedDocuments.forEach((d) => {
+        if (
+          d.status?.name === "APPROVED" &&
+          (!d.currentVersion?.expirationDate ||
+            d.currentVersion.expirationDate > now) &&
+          d.categoryId
+        ) {
+          compliantCategories.add(d.categoryId);
+        }
+      });
+
+      const compliancePercent = Math.round(
+        (compliantCategories.size / totalRequired) * 100
+      );
+      const remaining = totalRequired - compliantCategories.size;
 
       data = {
         totalDocuments,
         totalRequired,
         uploaded: uploadedCategoryCount,
         remaining: Math.max(remaining, 0),
+        compliancePercent,
       };
     }
 

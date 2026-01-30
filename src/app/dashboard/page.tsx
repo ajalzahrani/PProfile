@@ -46,7 +46,9 @@ export default async function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data?.totalDocuments}</div>
+            <div className="text-2xl font-bold">
+              {data?.totalDocuments ?? 0} out of {data?.totalRequired ?? 0}{" "}
+            </div>
             <p className="text-xs text-muted-foreground">
               All uploaded documents
             </p>
@@ -68,20 +70,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              High Risk Documents
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">
-              High & critical severity documents
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Resolution Rate
+              Completion Rate
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -94,7 +83,22 @@ export default async function DashboardPage() {
               %
             </div>
             <p className="text-xs text-muted-foreground">
-              Required & uploded certificates documents
+              Required & uploaded certificates documents
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Compliance Rate
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {data?.compliancePercent ?? 0}%
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Compliance documents
             </p>
           </CardContent>
         </Card>
