@@ -1209,6 +1209,15 @@ export async function approveDocument(documentId: string) {
       },
     });
 
+    await prisma.documentVersion.update({
+      where: { id: document.currentVersionId as string },
+      data: { status: { connect: { name: "APPROVED" } } },
+    });
+
+    revalidatePath(`/documents/${documentId}`);
+    revalidatePath("/documents");
+    revalidatePath("/user-documents");
+
     return { success: true, document: updatedDocument };
   } catch (error) {
     console.error("Error approving document:", error);

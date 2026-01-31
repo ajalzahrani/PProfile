@@ -9,6 +9,14 @@ import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PermissionCheck } from "@/components/auth/permission-check";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default async function DocumentConfigurationPage() {
   const jobTitles = await getJobTitles();
@@ -31,28 +39,28 @@ export default async function DocumentConfigurationPage() {
         </PermissionCheck>
       </PageHeader>
 
-      <div className="overflow-x-auto border rounded-lg">
-        <table className="min-w-full bg-white">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+      <div className="border rounded-lg overflow-hidden w-full">
+        <Table className="!w-auto min-w-full">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="min-w-[200px]">
                 Job Title
-              </th>
+              </TableHead>
               {categories.categories?.map((cat) => (
-                <th
+                <TableHead
                   key={cat.id}
-                  className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                  className="text-center min-w-[150px]">
                   {cat.name}
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {jobTitles.jobTitles?.map((job) => (
-              <tr key={job.id}>
-                <td className="px-6 py-4 font-medium text-gray-900">
+              <TableRow key={job.id}>
+                <TableCell className="font-medium min-w-[200px]">
                   {job.nameEn}
-                </td>
+                </TableCell>
                 {categories.categories?.map((cat) => {
                   const req = requirements.data?.find(
                     (r: any) =>
@@ -60,19 +68,19 @@ export default async function DocumentConfigurationPage() {
                       r.documentCategoryId === cat.id,
                   );
                   return (
-                    <td key={cat.id} className="px-6 py-4 text-center">
+                    <TableCell key={cat.id} className="text-center min-w-[150px]">
                       <RequirementToggle
                         jobId={job.id}
                         catId={cat.id}
                         initialData={req}
                       />
-                    </td>
+                    </TableCell>
                   );
                 })}
-              </tr>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </PageShell>
   );

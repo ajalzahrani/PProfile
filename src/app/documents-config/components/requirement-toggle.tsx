@@ -4,6 +4,8 @@ import { updateCertificateRequirement } from "@/actions/document-configs";
 import { useState } from "react";
 import { DocumentConfigFormValues } from "@/actions/document-configs.validation";
 import { toast } from "@/components/ui/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 export function RequirementToggle({ jobId, catId, initialData }: any) {
   const [isRequired, setIsRequired] = useState(
@@ -52,50 +54,45 @@ export function RequirementToggle({ jobId, catId, initialData }: any) {
 
   return (
     <div className="flex flex-col gap-2 text-xs">
-      <label className="flex items-center gap-1">
-        <input
-          type="checkbox"
+      <Label className="flex items-center gap-2 cursor-pointer">
+        <Checkbox
           checked={isRequired}
-          onChange={(e) => {
-            setIsRequired(e.target.checked);
-            handleChange(e.target.checked, requiresExpiry, isActive);
+          onCheckedChange={(checked) => {
+            const isChecked = checked === true;
+            setIsRequired(isChecked);
+            handleChange(isChecked, requiresExpiry, isActive);
           }}
         />
         Required
-      </label>
-      <label className="flex items-center gap-1">
-        <input
-          type="checkbox"
+      </Label>
+      <Label className="flex items-center gap-2 cursor-pointer">
+        <Checkbox
           checked={requiresExpiry}
-          onChange={(e) => {
-            setRequiresExpiry(e.target.checked);
-            handleChange(isRequired, e.target.checked, isActive);
+          onCheckedChange={(checked) => {
+            const isChecked = checked === true;
+            setRequiresExpiry(isChecked);
+            handleChange(isRequired, isChecked, isActive);
           }}
         />
         Has Expiry
-      </label>
-      <label className="flex items-center gap-1">
-        <input
-          type="checkbox"
+      </Label>
+      <Label className="flex items-center gap-2 cursor-pointer">
+        <Checkbox
           checked={isActive}
-          onChange={(e) => {
-            setIsActive(e.target.checked);
-            if (e.target.checked === false) {
-              console.log("state :", e.target.checked);
+          onCheckedChange={(checked) => {
+            const isChecked = checked === true;
+            setIsActive(isChecked);
+            if (!isChecked) {
               setIsRequired(false);
               setRequiresExpiry(false);
-              handleChange(
-                e.target.checked,
-                e.target.checked,
-                e.target.checked,
-              );
+              handleChange(false, false, false);
             } else {
-              handleChange(isRequired, requiresExpiry, e.target.checked);
+              handleChange(isRequired, requiresExpiry, isChecked);
             }
           }}
         />
         Active
-      </label>
+      </Label>
     </div>
   );
 }
