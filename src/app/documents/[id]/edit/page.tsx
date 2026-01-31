@@ -1,35 +1,44 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, useEffect, useActionState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
-import {
-  documentSchema,
-  type DocumentFormValues,
-} from "@/actions/documents.validation";
 import Link from "next/link";
-import { ChevronLeft, FileQuestion } from "lucide-react";
-import { SimplePdfViewer } from "../../../../components/pdf-components/simple-pdf-viewer";
-import { Textarea } from "@/components/ui/textarea";
-import { DatePicker } from "@/components/ui/date-picker";
+import { ChevronLeft } from "lucide-react";
+// import { SimplePdfViewer } from "../../../../components/pdf-components/simple-pdf-viewer";
 import { use } from "react";
-import { getDocumentById } from "@/actions/documents";
-import { getCategoriesForSelect } from "@/actions/categories";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { getDocumentById, updateDocumentAction } from "@/actions/documents";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useFormStatus } from "react-dom";
 
 interface PageParams {
   id: string;
+}
+
+// Submit button component that uses useFormStatus
+function SubmitButton({
+  fileSelected,
+  expirationDate,
+}: {
+  fileSelected: boolean;
+  expirationDate: string;
+}) {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" disabled={pending} className="w-full">
+      {pending
+        ? "Updating..."
+        : !fileSelected && expirationDate
+        ? "Update Expiration Date"
+        : fileSelected
+        ? "Upload New Version"
+        : "Update Document"}
+    </Button>
+  );
 }
 
 export default function EditDepartmentPage({
@@ -41,225 +50,61 @@ export default function EditDepartmentPage({
   const documentId = resolvedParams.id;
 
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
-    [],
-  );
+  const [document, setDocument] = useState<any>(null);
+  const [expirationDate, setExpirationDate] = useState<string>("");
+  const [changeNote, setChangeNote] = useState<string>("");
+  const [fileSelected, setFileSelected] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    control,
-    reset,
-  } = useForm({
-    resolver: zodResolver(documentSchema),
-    defaultValues: {
-      id: "",
-      title: "",
-      categoryId: undefined,
-      departmentIds: [],
-      description: "",
-      isArchived: false,
-      expirationDate: undefined,
-      changeNote: "",
-    },
-  });
-
-  // Clean up object URLs on unmount
-  useEffect(() => {
-    return () => {
-      if (filePreviewUrl) {
-        URL.revokeObjectURL(filePreviewUrl);
-      }
-    };
-  }, [filePreviewUrl]);
-
-  const onSubmit = async (data: DocumentFormValues) => {
-    console.log("Form submission data:", data);
-    setIsSubmitting(true);
-
-    // For updates without new file, we need a different approach
-    if (!selectedFile && data.id) {
-      // Update only metadata without new file
-      try {
-        const res = await fetch(`/api/documents/${data.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            title: data.title,
-            description: data.description ?? "",
-            categoryId: data.categoryId,
-            departmentIds: data.departmentIds,
-            isArchived: data.isArchived,
-            expirationDate: data.expirationDate?.toISOString() as string,
-            changeNote: data.changeNote,
-          }),
-        });
-
-        const result = await res.json();
-
-        if (!res.ok) {
-          toast({
-            title: "Error",
-            description: result.error || "Failed to update document",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        if (result.success) {
-          toast({ title: "Document updated successfully" });
-          router.push("/documents");
-        }
-      } catch (err) {
-        toast({
-          title: "Update failed",
-          description: "Try again",
-          variant: "destructive",
-        });
-      } finally {
-        setIsSubmitting(false);
-      }
-      return;
-    }
-
-    // For new uploads or updates with new file
-    if (!selectedFile && !data.id) {
-      toast({ title: "Please select a PDF file" });
-      setIsSubmitting(false);
-      return;
-    }
-
-    const formData = new FormData();
-    if (selectedFile) {
-      formData.append("file", selectedFile);
-    }
-    if (data.id) {
-      formData.append("id", data.id as string);
-    }
-    formData.append("title", data.title as string);
-    formData.append("description", data.description as string);
-
-    formData.append("departmentIds", JSON.stringify(data.departmentIds));
-
-    if (data.categoryId) {
-      formData.append("categoryId", data.categoryId as string);
-    }
-    if (data.expirationDate) {
-      formData.append(
-        "expirationDate",
-        data.expirationDate.toISOString() as string,
-      );
-    }
-    formData.append("isArchived", JSON.stringify(data.isArchived));
-    formData.append("changeNote", data.changeNote as string);
-    try {
-      const res = await fetch("/api/documents/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        if (result.error === "Duplicate document detected" && result.details) {
-          toast({
-            title: "Duplicate document detected",
-            description: `This file already exists as "${result.details.title}" (version ${result.details.versionNumber})`,
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: result.error || "Something went wrong",
-            variant: "destructive",
-          });
-        }
-        return;
-      }
-
-      if (result.success) {
-        toast({ title: data.id ? "Document updated" : "Document created" });
-        router.push("/documents");
-      } else {
-        toast({
-          title: "Error",
-          description: result.error || "Unknown error occurred",
-          variant: "destructive",
-        });
-      }
-    } catch (err: any) {
-      toast({
-        title: "Upload failed",
-        description: "Try again",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  // Create a bound action that includes documentId
+  const boundUpdateAction = async (
+    prevState: any,
+    formData: FormData
+  ) => {
+    formData.append("documentId", documentId);
+    return updateDocumentAction(prevState, formData);
   };
 
+  const [state, action] = useActionState(boundUpdateAction, null);
+
+  // Handle file selection change
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Create a URL for the file preview
-      if (filePreviewUrl) {
-        URL.revokeObjectURL(filePreviewUrl);
-      }
-      const url = URL.createObjectURL(file);
-      setFilePreviewUrl(url);
-      setSelectedFile(file);
-
-      // Try to set title from filename if empty
-      const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
-      const titleInput = document.getElementById("title") as HTMLInputElement;
-      if (titleInput && !titleInput.value) {
-        setValue("title", fileName);
-      }
-    } else {
-      setFilePreviewUrl(null);
-      setSelectedFile(null);
-    }
+    setFileSelected(!!file);
   };
 
+  // Handle server action state changes
   useEffect(() => {
-    const fetchCategories = async () => {
-      const { success, categories } = await getCategoriesForSelect();
-      if (success) {
-        setCategories(categories ?? []);
-      }
-    };
+    if (state?.success) {
+      toast({
+        title: "Success",
+        description: state.message || "Document updated successfully",
+      });
+      router.push(`/documents/${documentId}`);
+    } else if (state?.success === false && state?.error) {
+      toast({
+        title: "Error",
+        description: state.error,
+        variant: "destructive",
+      });
+    }
+  }, [state, router, documentId]);
 
-    fetchCategories();
+
+  // Fetch document data
+  useEffect(() => {
     const fetchDocument = async () => {
       const { documents, success, error } = await getDocumentById(documentId);
 
       if (success && documents) {
-        const document = documents[0];
-        // search for latest version by versionNumber
-        const currentVersion = document?.currentVersion ?? null;
-
-        setValue("id", document.id);
-        setValue("title", document.title);
-        setValue("categoryId", document.categoryId ?? "");
-        setValue("description", document.description ?? "");
-        // setTagsInput(document.tags.join(", "));
-        setValue("isArchived", document.isArchived);
-        setValue("expirationDate", currentVersion?.expirationDate ?? undefined);
-        setFilePreviewUrl(currentVersion?.filePath ?? null);
-        setValue("changeNote", currentVersion?.changeNote ?? "");
-        // Set departments from document data if available
-        if (document.departments && document.departments.length > 0) {
-          const departmentIds = document.departments.map(
-            (dept: any) => dept.id,
-          );
-          setValue("departmentIds", departmentIds);
+        const doc = documents[0];
+        setDocument(doc);
+        const currentVersion = doc?.currentVersion ?? null;
+        if (currentVersion?.expirationDate) {
+          const date = new Date(currentVersion.expirationDate);
+          setExpirationDate(date.toISOString().split("T")[0]);
+        }
+        if (currentVersion?.changeNote) {
+          setChangeNote(currentVersion.changeNote);
         }
       } else {
         toast({
@@ -271,7 +116,19 @@ export default function EditDepartmentPage({
     };
 
     fetchDocument();
-  }, [documentId, reset]);
+  }, [documentId]);
+
+  if (!document) {
+    return (
+      <div className="w-screen min-h-screen flex items-center justify-center">
+        <p>Loading document...</p>
+      </div>
+    );
+  }
+
+  const currentVersion = document?.currentVersion ?? null;
+  const categoryId = document.categoryId ?? "";
+  const categoryName = document.category?.name ?? "Document";
 
   return (
     <div className="w-screen min-h-screen">
@@ -288,175 +145,98 @@ export default function EditDepartmentPage({
         </div>
 
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => router.push(`/documents/${documentId}`)}
-            type="button">
-            Cancel
-          </Button>
+          <Link href={`/documents/${documentId}`}>
+            <button
+              type="button"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+              Cancel
+            </button>
+          </Link>
         </div>
       </div>
 
-      {/* Main content - Three column layout */}
+      {/* Main content */}
       <div className="flex w-full h-[calc(100vh-4rem)]">
-        {/* PDF Viewer - 2/3 width */}
-        <div className="w-2/3 border-r border-gray-200">
-          {filePreviewUrl ? (
-            <SimplePdfViewer fileUrl={filePreviewUrl} className="h-full" />
+        {/* PDF Viewer - Commented out as requested */}
+        {/* <div className="w-2/3 border-r border-gray-200">
+          {currentVersion?.filePath ? (
+            <SimplePdfViewer fileUrl={currentVersion.filePath} className="h-full" />
           ) : (
             <div className="h-full flex flex-col items-center justify-center bg-gray-50 text-gray-400">
               <FileQuestion size={64} strokeWidth={1} />
-              <p className="mt-4">Upload a PDF file to preview</p>
+              <p className="mt-4">No document preview available</p>
             </div>
           )}
-        </div>
+        </div> */}
 
-        {/* Form - 1/3 width */}
-        <div className="w-1/3 p-6 overflow-y-auto">
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            encType="multipart/form-data"
-            className="space-y-8">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="document">Upload New Document (Optional)</Label>
+        {/* Form - Full width since PDF viewer is commented out */}
+        <div className="w-full p-6 overflow-y-auto max-w-2xl mx-auto">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold mb-2">{document.title}</h2>
+              <p className="text-sm text-muted-foreground">
+                Category: {categoryName}
+              </p>
+            </div>
+
+            <form action={action} className="space-y-6">
+              {/* Document Upload Form Component */}
+              <div className="space-y-4">
+                <Label htmlFor="file">Upload New Document (Optional)</Label>
                 <Input
-                  id="document"
+                  id="file"
+                  name="file"
                   type="file"
-                  accept="application/pdf"
+                  accept=".pdf"
                   onChange={handleFileChange}
                   className="mt-1"
-                  required={false}
                 />
-                {selectedFile && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Selected: {selectedFile.name} (
-                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                  </p>
-                )}
-                <p className="text-xs text-gray-500">
-                  Leave empty to update only document information without
-                  changing the file
+                <p className="text-xs text-muted-foreground">
+                  {fileSelected
+                    ? "New file selected. A new version will be created."
+                    : "Leave empty to update only the expiration date without changing the file."}
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Controller
-                  name="categoryId"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value ?? ""} disabled={true}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem
-                            key={category.id}
-                            value={`${category.id}`}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {errors.categoryId && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.categoryId.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="title">Document Title</Label>
-                <Input
-                  disabled={true}
-                  id="title"
-                  {...register("title")}
-                  placeholder="Enter document title"
-                  className="mt-1"
-                />
-                {errors.title && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.title.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2" hidden>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  {...register("description")}
-                  placeholder="Enter document description"
-                  className="mt-1"
-                  rows={4}
-                />
-                {errors.description && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.description.message}
-                  </p>
-                )}
-              </div>
+              {/* Expiration Date */}
               <div className="space-y-2">
                 <Label htmlFor="expirationDate">Expiration Date</Label>
-                <Controller
+                <Input
+                  id="expirationDate"
                   name="expirationDate"
-                  control={control}
-                  render={({ field }) => (
-                    <DatePicker
-                      date={field.value as Date}
-                      setDate={field.onChange}
-                    />
-                  )}
+                  type="date"
+                  value={expirationDate}
+                  onChange={(e) => setExpirationDate(e.target.value)}
+                  className="mt-1"
                 />
-                {errors.expirationDate && (
-                  <p className="text-sm text-red-500">
-                    {String(errors.expirationDate.message)}
-                  </p>
-                )}
+                <p className="text-xs text-muted-foreground">
+                  Update the expiration date for this document.
+                </p>
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="isArchived" className="cursor-pointer">
-                    Is Archived
-                  </Label>
-                  <input
-                    type="checkbox"
-                    id="isArchived"
-                    {...register("isArchived")}
-                    className="h-4 w-4"
-                  />
-                </div>
-                {errors.isArchived && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.isArchived.message}
-                  </p>
-                )}
-              </div>
+
+              {/* Change Note */}
               <div className="space-y-2">
                 <Label htmlFor="changeNote">Change Note</Label>
                 <Textarea
                   id="changeNote"
-                  {...register("changeNote")}
-                  placeholder="Enter change note"
+                  name="changeNote"
+                  value={changeNote}
+                  onChange={(e) => setChangeNote(e.target.value)}
+                  placeholder="Enter a note describing the changes made (optional)"
                   className="mt-1"
                   rows={4}
                 />
               </div>
-              {errors.changeNote && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.changeNote.message}
-                </p>
-              )}
-            </div>
-            <div className="pt-4">
-              <Button type="submit" disabled={isSubmitting} className="w-full">
-                {isSubmitting ? "Saving..." : "Save Document"}
-              </Button>
-            </div>
-          </form>
+
+              {/* Submit Button */}
+              <div className="pt-4">
+                <SubmitButton
+                  fileSelected={fileSelected}
+                  expirationDate={expirationDate}
+                />
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

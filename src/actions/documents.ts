@@ -571,37 +571,153 @@ export async function uploadCertificateAction(
   }
 }
 
+
 /**
- * Update a document
+ * Update document action - handles both file upload and expiry date only updates
  */
-export async function updateDocument(
-  documentId: string,
-  document: DocumentFormValues
+export async function updateDocumentAction(
+  prevState: any,
+  formData: FormData
 ) {
-  const session = await getServerSession(authOptions);
-
-  const validatedFields = documentSchema.safeParse(document);
-
-  if (!validatedFields.success) {
-    return { error: "Invalid fields" };
-  }
-
-  if (!session?.user) {
-    return { success: false, error: "Unauthorized" };
-  }
-
   try {
-    const updatedDocument = await prisma.document.update({
+    const user = await getCurrentUser();
+
+    if (!user) return { success: false, error: "Unauthorized" };
+
+    const documentId = formData.get("documentId") as string;
+    const file = formData.get("file") as File | null;
+    const expirationDateStr = formData.get("expirationDate") as string | null;
+    const changeNote = formData.get("changeNote") as string | null;
+
+    if (!documentId) {
+      return { success: false, error: "Document ID is required" };
+    }
+
+    // Check if document exists
+    const existingDocument = await prisma.document.findUnique({
       where: { id: documentId },
-      data: document,
+      include: {
+        currentVersion: true,
+        status: true,
+      },
     });
 
-    revalidatePath("/documents");
+    if (!existingDocument) {
+      return { success: false, error: "Document not found" };
+    }
 
-    return { success: true, document: updatedDocument };
-  } catch (error) {
-    console.error("Error updating document:", error);
-    return { success: false, error: "Error updating document" };
+    const expirationDate = expirationDateStr
+      ? new Date(expirationDateStr)
+      : null;
+
+    // Check if a file was actually uploaded (not just an empty file input)
+    const hasFile = file && file.size > 0;
+
+    // If file is provided, create a new version
+    if (hasFile) {
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const hash = crypto.createHash("sha256").update(buffer).digest("hex");
+
+      // Check for duplicate
+      const existingVersion = await prisma.documentVersion.findFirst({
+        where: { hash, documentId },
+      });
+
+      if (existingVersion) {
+        return {
+          success: false,
+          error: "This file has already been uploaded for this document",
+        };
+      }
+
+      // Create new version with file
+      const versionResult = await generateDocumentVersionTx(
+        documentId,
+        file.name,
+        buffer,
+        hash,
+        user.id,
+        changeNote || "Document updated with new file",
+        expirationDate,
+        "DRAFT"
+      );
+
+      // Update document status to draft
+      await prisma.document.update({
+        where: { id: documentId },
+        data: { status: { connect: { name: "DRAFT" } } },
+      });
+
+
+      if (!versionResult.success) {
+        return { success: false, error: versionResult.error };
+      }
+
+      revalidatePath(`/documents/${documentId}`);
+      revalidatePath("/documents");
+      revalidatePath("/user-documents");
+
+      return {
+        success: true,
+        message: "Document updated successfully with new file",
+        documentId,
+      };
+    } else {
+      // Update only expiry date on current version (no new file uploaded)
+      if (expirationDate && existingDocument.currentVersion) {
+        // Update current version with new expiration date and optional change note
+        await prisma.documentVersion.update({
+          where: { id: existingDocument.currentVersion.id },
+          data: {
+            expirationDate,
+            ...(changeNote ? { changeNote } : {}),
+          },
+        });
+
+        // Update document status to draft
+        await prisma.document.update({
+          where: { id: documentId },
+          data: { status: { connect: { name: "DRAFT" } } },
+        });
+
+        revalidatePath(`/documents/${documentId}`);
+        revalidatePath("/documents");
+        revalidatePath("/user-documents");
+
+        return {
+          success: true,
+          message: "Expiration date updated successfully",
+          documentId,
+        };
+      } else {
+        return {
+          success: false,
+          error: "Either a file or expiration date must be provided",
+        };
+      }
+    }
+  } catch (error: any) {
+    console.error("Server Action Error:", error);
+
+    const errorMessage =
+      error.message || error.toString() || "An unexpected error occurred";
+    if (
+      errorMessage.toLowerCase().includes("body exceeded") ||
+      errorMessage.toLowerCase().includes("5mb") ||
+      errorMessage.toLowerCase().includes("body size limit")
+    ) {
+      return {
+        success: false,
+        error:
+          "File size exceeds the server limit. Maximum file size is 5MB. Please choose a smaller file.",
+      };
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
   }
 }
 
