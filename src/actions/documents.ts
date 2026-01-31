@@ -1085,3 +1085,71 @@ export async function approveDocument(documentId: string) {
     return { success: false, error: "Error approving document" };
   }
 }
+
+/**
+ * Reject a document
+ */
+export async function rejectDocument(
+  documentId: string,
+  rejectComment: string
+) {
+  const user = await getCurrentUser();
+
+  if (!user) return { success: false, error: "Unauthorized" };
+
+  if (!rejectComment || rejectComment.trim().length === 0) {
+    return { success: false, error: "Reject comment is required" };
+  }
+
+  try {
+    // Check if REJECTED status exists
+    const rejectedStatus = await prisma.documentStatus.findUnique({
+      where: { name: "REJECTED" },
+    });
+
+    if (!rejectedStatus) {
+      return {
+        success: false,
+        error:
+          "REJECTED status not found in database. Please run the seed script to add it.",
+      };
+    }
+
+    const document = await prisma.document.findUnique({
+      where: { id: documentId },
+      include: {
+        status: true,
+      },
+    });
+
+    if (!document) return { success: false, error: "Document not found" };
+
+    // Allow rejection from DRAFT or REVIEW status
+    if (document.status.name !== "DRAFT" && document.status.name !== "REVIEW") {
+      return {
+        success: false,
+        error: "Document can only be rejected from DRAFT or REVIEW status",
+      };
+    }
+
+    const updatedDocument = await prisma.document.update({
+      where: { id: documentId },
+      data: {
+        statusId: rejectedStatus.id,
+        rejectComment: rejectComment.trim(),
+      },
+    });
+
+    revalidatePath(`/documents/${documentId}`);
+    revalidatePath("/user-documents");
+
+    return { success: true, document: updatedDocument };
+  } catch (error) {
+    console.error("Error rejecting document:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Error rejecting document",
+    };
+  }
+}

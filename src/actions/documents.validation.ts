@@ -99,12 +99,13 @@ export enum DeletionType {
 }
 
 export const STATUS_TRANSITIONS = {
-  DRAFT: ["REVIEW", "ARCHIVED"],
-  REVIEW: ["APPROVED", "UNDER_REVISION", "DECLINED"],
+  DRAFT: ["REVIEW", "REJECTED", "ARCHIVED"],
+  REVIEW: ["APPROVED", "UNDER_REVISION", "DECLINED", "REJECTED"],
   UNDER_REVISION: ["DRAFT"], // Returns to draft for modifications
   APPROVED: ["PENDING_SIGNATURES", "ARCHIVED"],
   PENDING_SIGNATURES: ["SIGNED", "EXPIRED"],
   SIGNED: ["PUBLISHED", "ARCHIVED"],
   PUBLISHED: ["ARCHIVED"], // Final state
+  REJECTED: ["DRAFT"], // Rejected documents can be resubmitted as draft
   // ... other transitions
 };

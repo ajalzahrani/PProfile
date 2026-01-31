@@ -10,6 +10,8 @@ import { PermissionCheck } from "@/components/auth/permission-check";
 import { getCurrentUser } from "@/lib/auth";
 import { DocumentVersionChangeNote } from "../components/document-version-changenote";
 import { DeleteDocumentDialog } from "../components/document-delete-dialog";
+import ApproveDocumentButton from "../components/approve-document-button";
+import RejectDocumentButton from "../components/reject-document-button";
 // import { SimplePdfViewer } from "../../../components/pdf-components/simple-pdf-viewer";
 
 export default async function DocumentPage({
@@ -29,7 +31,7 @@ export default async function DocumentPage({
   if (!documentResponse.success) {
     if (documentResponse.error === "Unauthorized") {
       redirect(
-        "/login?callbackUrl=" + encodeURIComponent(`/documents/${documentId}`),
+        "/login?callbackUrl=" + encodeURIComponent(`/documents/${documentId}`)
       );
     } else {
       notFound();
@@ -53,7 +55,7 @@ export default async function DocumentPage({
       <div className="bg-background border-b px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
-            href="/user-documents"
+            href={user?.role === "AUDITOR" ? "/documents" : "/user-documents"}
             className="flex items-center text-muted-foreground hover:text-foreground">
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back to Documents
@@ -64,15 +66,31 @@ export default async function DocumentPage({
           <PermissionCheck required="delete:document">
             <DeleteDocumentDialog documentId={document.id} />
           </PermissionCheck>
-          <PermissionCheck required="create:document">
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/documents/${documentId}/edit`}>
-                  Edit Document
-                </Link>
-              </Button>
+          {/* FLOW CONDITION: Only show edit button if document is in DRAFT or REJECTED status */}
+          {(document?.status?.name === "DRAFT" ||
+            document?.status?.name === "REJECTED") && (
+            <PermissionCheck required="edit:document">
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/documents/${documentId}/edit`}>
+                    Edit Document
+                  </Link>
+                </Button>
+              </div>
+            </PermissionCheck>
+          )}
+          {/* FLOW CONDITION: Only show approve and reject buttons if user has approve:document permission and document is in DRAFT status */}
+          {document?.status?.name === "DRAFT" && (
+            <div className="flex items-center justify-between gap-2">
+              <PermissionCheck required="approve:document">
+                  <ApproveDocumentButton documentId={documentId} />
+              </PermissionCheck>
+
+              <PermissionCheck required="reject:document">
+                  <RejectDocumentButton documentId={documentId} />
+                </PermissionCheck>              
             </div>
-          </PermissionCheck>
+          )}
         </div>
       </div>
 
@@ -112,6 +130,17 @@ export default async function DocumentPage({
               </p>
             </div>
 
+            {document.status?.name === "REJECTED" && document.rejectComment && (
+              <div>
+                <h3 className="text-md font-medium mb-2 text-destructive">
+                  Rejection Comment
+                </h3>
+                <p className="text-sm text-muted-foreground bg-destructive/10 p-3 rounded-md border border-destructive/20">
+                  {document.rejectComment}
+                </p>
+              </div>
+            )}
+
             {/* <div>
               <h3 className="text-md font-medium mb-2">Document Scope</h3>
               {document.isOrganizationWide ? (
@@ -139,7 +168,7 @@ export default async function DocumentPage({
                     key={v.id}
                     className={cn(
                       "text-sm border-b border-border p-2",
-                      v.id === document.currentVersion?.id && "bg-muted",
+                      v.id === document.currentVersion?.id && "bg-muted"
                     )}>
                     <div className="flex justify-between">
                       <span className="font-medium">

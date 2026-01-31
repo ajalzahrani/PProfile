@@ -116,6 +116,7 @@ model Document {
   isArchived  Boolean  @default(false)
   statusId            String
   status              DocumentStatus       @relation(fields: [statusId], references: [id])
+  rejectComment       String? // Comment provided when document is rejected
 
   categoryId    String?
   category      DocumentCategory?         @relation(fields: [categoryId], references: [id])

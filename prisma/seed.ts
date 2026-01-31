@@ -16,21 +16,39 @@ async function main() {
     },
   });
 
-  const employeeRole = await prisma.role.upsert({
-    where: { name: "EMPLOYEE" },
+  const doctorRole = await prisma.role.upsert({
+    where: { name: "DOCTOR" },
     update: {},
     create: {
-      name: "EMPLOYEE",
-      description: "Basic access to report incidents and view own reports",
+      name: "DOCTOR",
+      description: "Access to view and manage documents",
     },
   });
 
-  const qualityAssuranceRole = await prisma.role.upsert({
-    where: { name: "QUALITY_ASSURANCE" },
+  const nurseRole = await prisma.role.upsert({
+    where: { name: "NURSE" },
     update: {},
     create: {
-      name: "QUALITY_ASSURANCE",
-      description: "Basic access to review documents and placeholder documents",
+      name: "NURSE",
+      description: "Access to view and manage documents",
+    },
+  });
+
+  const technicianRole = await prisma.role.upsert({
+    where: { name: "TECHNICIAN" },
+    update: {},
+    create: {
+      name: "TECHNICIAN",
+      description: "Access to view and manage documents",
+    },
+  });
+
+  const auditorRole = await prisma.role.upsert({
+    where: { name: "AUDITOR" },
+    update: {},
+    create: {
+      name: "AUDITOR",
+      description: "Ability to view, approve, and reject uploaded documents",
     },
   });
 
@@ -45,23 +63,23 @@ async function main() {
     },
   });
 
-  const securityDepartment = await prisma.department.upsert({
-    where: { name: "Security" },
+  const familyMedicineDepartment = await prisma.department.upsert({
+    where: { name: "Family Medicine" },
     update: {
-      name: "Security",
+      name: "Family Medicine",
     },
     create: {
-      name: "Security",
+      name: "Family Medicine",
     },
   });
 
-  const qualityAssuranceDepartment = await prisma.department.upsert({
-    where: { name: "Quality Assurance" },
+  const pediatricsDepartment = await prisma.department.upsert({
+    where: { name: "Pediatrics" },
     update: {
-      name: "Quality Assurance",
+      name: "Pediatrics",
     },
     create: {
-      name: "Quality Assurance",
+      name: "Pediatrics",
     },
   });
 
@@ -92,84 +110,64 @@ async function main() {
       roleId: adminRole.id,
     },
   });
+    
+    const auditorUser = await prisma.user.upsert({
+      where: { email: "auditor@docbox.com" },
+      update: {
+        email: "auditor@docbox.com",
+        name: "Auditor User",
+        username: "auditor",
+        password: hashedPassword,
+        roleId: auditorRole.id,
+        departmentId: hrDepartment.id,
+      },
+      create: {
+        email: "auditor@docbox.com",
+        name: "Auditor User",
+        username: "auditor",
+        password: hashedPassword,
+        roleId: auditorRole.id,
+        departmentId: hrDepartment.id,
+      },
+    });
 
-  const itUser = await prisma.user.upsert({
-    where: { email: "salem@docbox.com" },
+  const doctorUser = await prisma.user.upsert({
+    where: { email: "fmc-doctor@docbox.com" },
     update: {
-      email: "salem@docbox.com",
-      name: "Salem Ali",
-      username: "salem",
+      email: "fmc-doctor@docbox.com",
+      name: "Family Medicine Doctor User",
+      username: "fmc-doctor",
       password: hashedPassword,
-      roleId: employeeRole.id,
-      departmentId: itDepartment.id,
+      roleId: doctorRole.id,
+      departmentId: familyMedicineDepartment.id,
     },
     create: {
-      email: "salem@docbox.com",
-      name: "Salem Ali",
-      username: "salem",
+      email: "fmc-doctor@docbox.com",
+      name: "Family Medicine Doctor User",
+      username: "fmc-doctor",
       password: hashedPassword,
-      roleId: employeeRole.id,
-      departmentId: itDepartment.id,
+      roleId: doctorRole.id,
+      departmentId: familyMedicineDepartment.id,
     },
   });
 
-  const hrUser = await prisma.user.upsert({
-    where: { email: "hr@docbox.com" },
+  const nurseUser = await prisma.user.upsert({
+    where: { email: "ped-nurse@docbox.com" },
     update: {
-      email: "hr@docbox.com",
-      name: "HR User",
-      username: "hr",
+      email: "ped-nurse@docbox.com",
+      name: "Pediatrics Nurse User",
+      username: "ped-nurse",
       password: hashedPassword,
-      roleId: employeeRole.id,
-      departmentId: hrDepartment.id,
+      roleId: nurseRole.id,
+      departmentId: pediatricsDepartment.id,
     },
     create: {
-      email: "hr@docbox.com",
-      name: "HR User",
-      username: "hr",
+      email: "ped-nurse@docbox.com",
+      name: "Pediatrics Nurse User",
+      username: "ped-nurse",
       password: hashedPassword,
-      roleId: employeeRole.id,
-      departmentId: hrDepartment.id,
-    },
-  });
-
-  const qualityAssuranceUser = await prisma.user.upsert({
-    where: { email: "sara@docbox.com" },
-    update: {
-      email: "sara@docbox.com",
-      name: "Sara Ali",
-      username: "sara",
-      password: hashedPassword,
-      roleId: qualityAssuranceRole.id,
-      departmentId: qualityAssuranceDepartment.id,
-    },
-    create: {
-      email: "sara@docbox.com",
-      name: "Sara Ali",
-      username: "sara",
-      password: hashedPassword,
-      roleId: qualityAssuranceRole.id,
-      departmentId: qualityAssuranceDepartment.id,
-    },
-  });
-
-  const securityUser = await prisma.user.upsert({
-    where: { email: "sec@docbox.com" },
-    update: {
-      email: "sec@docbox.com",
-      name: "Security User",
-      username: "security",
-      password: hashedPassword,
-      roleId: employeeRole.id,
-      departmentId: securityDepartment.id,
-    },
-    create: {
-      email: "sec@docbox.com",
-      name: "Security User",
-      username: "security",
-      password: hashedPassword,
-      roleId: employeeRole.id,
-      departmentId: securityDepartment.id,
+      roleId: nurseRole.id,
+      departmentId: pediatricsDepartment.id,
     },
   });
 
@@ -273,6 +271,20 @@ async function main() {
       name: "DECLINED",
       variant: "secondary",
       description: "Document declined by the reviewer",
+    },
+  });
+
+  const statusRejected = await prisma.documentStatus.upsert({
+    where: { name: "REJECTED" },
+    update: {
+      name: "REJECTED",
+      variant: "destructive",
+      description: "Document rejected by the auditor with a comment",
+    },
+    create: {
+      name: "REJECTED",
+      variant: "destructive",
+      description: "Document rejected by the auditor with a comment",
     },
   });
 
@@ -435,19 +447,24 @@ async function main() {
       description: "Ability to approve documents",
     },
     {
+      code: "reject:document",
+      name: "Reject Document",
+      description: "Ability to reject documents",
+    },
+    {
       code: "manage:document-configs",
       name: "Manage documents configurations",
       description: "Ability to view document configuration",
     },
     {
-      code: "add-new-requirement:documents",
-      name: "Add New Requirement",
+      code: "add-new-requirement:document",
+      name: "Add New Requirement for Document",
       description:
         "Ability to add new requirements for document configurations",
     },
     {
       code: "manage-compliance:documents",
-      name: "Manage compliance documents",
+      name: "Manage Compliance Documents",
       description: "Ability to view compliance documents",
     },
     {
@@ -521,22 +538,30 @@ async function main() {
 
   const rolePermissions = {
     ADMIN: ["admin:all"],
-    EMPLOYEE: [
-      "manage:reports",
-      "manage:documents",
-      "manage:dashboards",
-      "sign:document",
+    AUDITOR: [
       "review:document",
       "approve:document",
-    ],
-    QUALITY_ASSURANCE: [
-      "refer:document",
-      "review:document",
-      "placeholder:document",
+      "reject:document",
       "manage:documents",
       "manage:dashboards",
       "create:document",
       "edit:document",
+      "manage:management",
+    ],
+    DOCTOR: [
+      "manage-compliance:documents",
+      "manage:profiles",
+      "manage:dashboards",
+    ],
+    NURSE: [
+      "manage-compliance:documents",
+      "manage:profiles",
+      "manage:dashboards",
+    ],
+    TECHNICIAN: [
+      "manage-compliance:documents",
+      "manage:profiles",
+      "manage:dashboards",
     ],
   };
 
