@@ -14,7 +14,7 @@ import Link from "next/link";
 import { ChevronLeft, FileQuestion } from "lucide-react";
 import { SimplePdfViewer } from "../../../components/pdf-components/simple-pdf-viewer";
 import { uploadCertificateAction } from "@/actions/documents";
-import { CertificateUploadForm } from "../components/certificate-upload-form";
+import { DocumentUploadForm } from "@/app/user-documents/components/document-upload-form";
 
 export default function NewDocumentPage() {
   const router = useRouter();
@@ -235,7 +235,7 @@ export default function NewDocumentPage() {
 
         {/* Form - 1/3 width */}
         <div className="w-1/3 p-6 overflow-y-auto">
-          <CertificateUploadForm
+          <DocumentUploadForm
             categoryId={"categoryId"}
             categoryName={"categoryName"}
             requiresExpiry={true}

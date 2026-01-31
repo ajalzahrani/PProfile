@@ -550,9 +550,23 @@ export async function uploadCertificateAction(
     };
   } catch (error: any) {
     console.error("Server Action Error:", error);
+    
+    // Handle body size limit errors specifically
+    const errorMessage = error.message || error.toString() || "An unexpected error occurred";
+    if (
+      errorMessage.toLowerCase().includes("body exceeded") ||
+      errorMessage.toLowerCase().includes("5mb") ||
+      errorMessage.toLowerCase().includes("body size limit")
+    ) {
+      return {
+        success: false,
+        error: "File size exceeds the server limit. Maximum file size is 5MB. Please choose a smaller file.",
+      };
+    }
+    
     return {
       success: false,
-      error: error.message || "An unexpected error occurred",
+      error: errorMessage,
     };
   }
 }
