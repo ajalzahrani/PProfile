@@ -22,7 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     label: "Profile",
-    href: "/person-profile",
+    href: "/user-profile",
     requiredPermissions: ["manage:profiles"],
   },
   {

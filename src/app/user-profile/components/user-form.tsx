@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
-import { updatePersonProfile } from "@/actions/profile";
+import { updateUserProfile } from "@/actions/user-profile";
 
 interface ModelType {
   id: string;
@@ -29,7 +29,7 @@ interface ModelType {
   nameAr: string;
 }
 
-export function ProfileForm({
+export function UserForm({
   initialData,
   jobTitles,
   units,
@@ -99,6 +99,10 @@ export function ProfileForm({
 
   const citizenship = watch("citizenship");
 
+  // Determine if this is create or update mode
+  const isUpdateMode =
+    initialData?.id !== undefined && initialData?.id !== null;
+
   const onSubmit: SubmitHandler<PersonFormValues> = async (data) => {
     setIsSubmitting(true);
 
@@ -127,24 +131,33 @@ export function ProfileForm({
       }
 
       console.log("Submitting form data...", formData);
-      const result = await updatePersonProfile(formData);
+      const result = await updateUserProfile(formData);
       console.log("Submission result:", result);
 
       if (result.success) {
         toast({
-          title: "Person created successfully",
+          title: isUpdateMode
+            ? "User profile updated successfully"
+            : "User profile created successfully",
         });
-        // router.push("/");
+        // Refresh the page to show update form if it was a create
+        if (!isUpdateMode) {
+          router.refresh();
+        }
       } else {
         toast({
-          title: "Failed to create person",
+          title: isUpdateMode
+            ? "Failed to update user profile"
+            : "Failed to create user profile",
           description: result.error,
         });
       }
     } catch (error) {
-      console.error("Error creating person:", error);
+      console.error("Error saving user profile:", error);
       toast({
-        title: "Failed to create person",
+        title: isUpdateMode
+          ? "Failed to update user profile"
+          : "Failed to create user profile",
         description: "Please try again.",
       });
     } finally {
@@ -510,9 +523,10 @@ export function ProfileForm({
           )}
         </div>
       </CardContent>
-      <CardFooter className="flex justify-end gap-2">
+      <CardFooter className="flex justify-end gap-2 mt-4">
         <div>
           <Button
+            type="button"
             variant="outline"
             onClick={() => router.back()}
             className="mr-2">
@@ -520,7 +534,13 @@ export function ProfileForm({
           </Button>
         </div>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Creating..." : "Create Person"}
+          {isSubmitting
+            ? isUpdateMode
+              ? "Updating..."
+              : "Creating..."
+            : isUpdateMode
+              ? "Update User Profile"
+              : "Create User Profile"}
         </Button>
       </CardFooter>
     </form>

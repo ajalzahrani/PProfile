@@ -14,7 +14,7 @@ import { deleteDocumentFiles } from "./document-delete-actions";
 import { saveOrganizedFile } from "./document-file-utils";
 
 /**
- * 
+ *
  * ### Get all documents for the current user
  */
 export async function getDocuments() {
@@ -130,7 +130,7 @@ export async function changeDocumentStatus(
   documentId: string,
   currentStatus: string,
   newStatus: string,
-  transaction: PrismaClient
+  transaction: PrismaClient,
 ) {
   if (!documentId) {
     throw new Error("Document not found");
@@ -141,7 +141,7 @@ export async function changeDocumentStatus(
 
   if (!allowedTransitions.includes(newStatus)) {
     throw new Error(
-      `Invalid status transition from ${currentStatus} to ${newStatus}`
+      `Invalid status transition from ${currentStatus} to ${newStatus}`,
     );
   }
 
@@ -151,7 +151,6 @@ export async function changeDocumentStatus(
     data: { status: { connect: { name: newStatus } } },
   });
 }
-
 
 /**
  * ### Generate document version with organized file structure
@@ -164,11 +163,10 @@ export async function generateDocumentVersionTx(
   uploaderId: string,
   changeNote: string,
   expirationDate: Date | null,
-  documentStatus: string
+  documentStatus: string,
 ) {
   try {
     const result = await prisma.$transaction(async (tx) => {
-      
       const versionNumber = 1;
 
       // Use organized file structure
@@ -177,7 +175,7 @@ export async function generateDocumentVersionTx(
         fileName,
         buffer,
         documentStatus,
-        versionNumber
+        versionNumber,
       );
 
       if (error || !relativePath) {
@@ -243,10 +241,7 @@ export async function generateDocumentVersionTx(
 /**
  * ### Upload certificate action
  */
-export async function saveDocumentAction(
-  prevState: any,
-  formData: FormData
-) {
+export async function saveDocumentAction(prevState: any, formData: FormData) {
   try {
     // 1. Auth Guard
     const user = await getCurrentUser();
@@ -321,7 +316,7 @@ export async function saveDocumentAction(
       user.id,
       "Initial Certificate Upload",
       expirationDateStr ? new Date(expirationDateStr) : null,
-      "DRAFT"
+      "DRAFT",
     );
 
     if (!versionResult.success) {
@@ -334,7 +329,7 @@ export async function saveDocumentAction(
     }
 
     // 8. Refresh the UI
-    revalidatePath("/person-profile");
+    revalidatePath("/user-profile");
     revalidatePath("/user-documents");
 
     return {
@@ -344,9 +339,10 @@ export async function saveDocumentAction(
     };
   } catch (error: any) {
     console.error("Server Action Error:", error);
-    
+
     // Handle body size limit errors specifically
-    const errorMessage = error.message || error.toString() || "An unexpected error occurred";
+    const errorMessage =
+      error.message || error.toString() || "An unexpected error occurred";
     if (
       errorMessage.toLowerCase().includes("body exceeded") ||
       errorMessage.toLowerCase().includes("5mb") ||
@@ -354,10 +350,11 @@ export async function saveDocumentAction(
     ) {
       return {
         success: false,
-        error: "File size exceeds the server limit. Maximum file size is 5MB. Please choose a smaller file.",
+        error:
+          "File size exceeds the server limit. Maximum file size is 5MB. Please choose a smaller file.",
       };
     }
-    
+
     return {
       success: false,
       error: errorMessage,
@@ -366,12 +363,10 @@ export async function saveDocumentAction(
 }
 
 /**
- * ### Update document action - 
+ * ### Update document action -
  * handles both file upload and expiry date only updates
  */
-export async function updateDocumentAction(
-  formData: FormData
-) {
+export async function updateDocumentAction(formData: FormData) {
   try {
     const user = await getCurrentUser();
 
@@ -424,10 +419,14 @@ export async function updateDocumentAction(
       });
 
       // If hash exists and it's not the current version of this document, return error
-      if (existingVersionByHash && existingVersionByHash.id !== currentVersion.id) {
+      if (
+        existingVersionByHash &&
+        existingVersionByHash.id !== currentVersion.id
+      ) {
         return {
           success: false,
-          error: "Duplicate document detected: This file has already been uploaded.",
+          error:
+            "Duplicate document detected: This file has already been uploaded.",
           details: {
             documentId: existingVersionByHash.documentId,
             title: existingVersionByHash.document.title,
@@ -472,7 +471,7 @@ export async function updateDocumentAction(
           file.name,
           buffer,
           "DRAFT",
-          currentVersion.versionNumber
+          currentVersion.versionNumber,
         );
 
         if (error || !relativePath) {
@@ -627,7 +626,7 @@ export async function approveDocument(documentId: string) {
  */
 export async function rejectDocument(
   documentId: string,
-  rejectComment: string
+  rejectComment: string,
 ) {
   const user = await getCurrentUser();
 
