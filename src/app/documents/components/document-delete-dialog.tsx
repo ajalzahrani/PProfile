@@ -16,7 +16,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import { Trash2 } from "lucide-react";
-import { deleteDocument } from "@/actions/documents";
+import { deleteDocument } from "@/actions/document-delete-actions";
 import { Input } from "@/components/ui/input";
 
 interface DeleteDocumentDialogProps {

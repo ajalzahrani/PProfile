@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Eye, FileEdit, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { Prisma } from "@prisma/client";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +21,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { deleteDocument } from "@/actions/documents";
+import { deleteDocument } from "@/actions/document-delete-actions";
 
 interface DocumentListProps {
   documents: any[];

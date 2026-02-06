@@ -2,7 +2,6 @@
 
 // import { approveDocument } from "@/actions/documents";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
 import { hasPermission } from "@/lib/permissions";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";

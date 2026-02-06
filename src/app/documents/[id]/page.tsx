@@ -141,20 +141,6 @@ export default async function DocumentPage({
               </div>
             )}
 
-            {/* <div>
-              <h3 className="text-md font-medium mb-2">Document Scope</h3>
-              {document.isOrganizationWide ? (
-                <p className="text-sm text-muted-foreground">
-                  Organization-wide access
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  {document.departments.map((d) => d.name).join(", ") ||
-                    "No departments provided."}
-                </p>
-              )}
-            </div> */}
-
             <div>
               <h3 className="text-md font-medium mb-2">Version History</h3>
               <ul className="space-y-3 max-h-80 overflow-y-auto pr-2">

@@ -41,7 +41,7 @@ function SubmitButton({
   );
 }
 
-export default function EditDepartmentPage({
+export default function EditDocumentPage({
   params,
 }: {
   params: Promise<PageParams>;
@@ -61,7 +61,7 @@ export default function EditDepartmentPage({
     formData: FormData
   ) => {
     formData.append("documentId", documentId);
-    return updateDocumentAction(prevState, formData);
+    return updateDocumentAction(formData);
   };
 
   const [state, action] = useActionState(boundUpdateAction, null);
