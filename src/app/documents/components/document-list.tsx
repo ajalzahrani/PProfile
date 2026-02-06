@@ -29,6 +29,26 @@ interface DocumentListProps {
   documents: any[];
 }
 
+function getStatusBadge(document: any) {
+  const expirationDate = document.currentVersion?.expirationDate;
+  const statusName = document.status.name;
+
+  console.log(statusName + " - " + document.id);
+
+  if (statusName.toUpperCase() === "EXPIRED") {
+    return <Badge variant="destructive">EXPIRED</Badge>;
+  }
+
+  if (expirationDate) {
+    if (expirationDate < new Date()) {
+      return <Badge variant="destructive">EXPIRED</Badge>;
+    }
+    return <Badge variant="default">{statusName.toUpperCase()}</Badge>;
+  }
+
+  return <Badge variant="default">{statusName.toUpperCase()}</Badge>;
+}
+
 export function DocumentList({ documents }: DocumentListProps) {
   const [documentToDelete, setDocumentToDelete] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -76,7 +96,6 @@ export function DocumentList({ documents }: DocumentListProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-
                 <TableHead>Created By</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead>Updated At</TableHead>
@@ -98,19 +117,9 @@ export function DocumentList({ documents }: DocumentListProps) {
                         ? formatDate(document.currentVersion?.expirationDate)
                         : "N/A"}
                     </TableCell>
-                    <TableCell>
-                      {document.currentVersion?.expirationDate ? (
-                        document.currentVersion?.expirationDate < new Date() ? (
-                          <Badge variant="destructive">Expired</Badge>
-                        ) : (
-                          <Badge variant="default">
-                            {document.status.name}
-                          </Badge>
-                        )
-                      ) : (
-                        <Badge variant="default">{document.status.name}</Badge>
-                      )}
-                    </TableCell>
+                    <TableCell>{getStatusBadge(document)}</TableCell>
+
+                    {/* Actions */}
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon">
                         <Link href={`/documents/${document.id}`}>
