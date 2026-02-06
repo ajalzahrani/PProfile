@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Eye, FileEdit, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import {
   Dialog,
@@ -22,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { deleteDocument } from "@/actions/document-delete-actions";
+import { formatDate } from "@/lib/utils";
 
 interface DocumentListProps {
   documents: any[];
@@ -78,8 +80,8 @@ export function DocumentList({ documents }: DocumentListProps) {
                 <TableHead>Created By</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead>Updated At</TableHead>
+                <TableHead>Expires At</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Version</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -89,15 +91,25 @@ export function DocumentList({ documents }: DocumentListProps) {
                   <TableRow key={document.id}>
                     <TableCell>{document.title}</TableCell>
                     <TableCell>{document.creator.name}</TableCell>
+                    <TableCell>{formatDate(document.createdAt)}</TableCell>
+                    <TableCell>{formatDate(document.updatedAt)}</TableCell>
                     <TableCell>
-                      {document.createdAt.toLocaleDateString()}
+                      {document.currentVersion?.expirationDate
+                        ? formatDate(document.currentVersion?.expirationDate)
+                        : "N/A"}
                     </TableCell>
                     <TableCell>
-                      {document.updatedAt.toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>{document.status.name}</TableCell>
-                    <TableCell>
-                      {document.currentVersion?.versionNumber}
+                      {document.currentVersion?.expirationDate ? (
+                        document.currentVersion?.expirationDate < new Date() ? (
+                          <Badge variant="destructive">Expired</Badge>
+                        ) : (
+                          <Badge variant="default">
+                            {document.status.name}
+                          </Badge>
+                        )
+                      ) : (
+                        <Badge variant="default">{document.status.name}</Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon">
