@@ -14,10 +14,10 @@ export async function Navbar() {
     return (
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur">
         <div className="container mx-auto max-w-screen-xl flex h-14 items-center justify-between px-4">
-          <div className="flex items-center space-x-2">
+          <Link href="/login" className="flex items-center space-x-2">
             <InboxIcon className="h-6 w-6" />
             <h1 className="text-xl font-bold">DocBox</h1>
-          </div>
+          </Link>
           <div className="flex items-center space-x-2">
             <Button variant="outline" asChild>
               <Link href="/login">Login</Link>

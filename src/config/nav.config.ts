@@ -10,11 +10,11 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  {
-    label: "Dashboard",
-    href: "/dashboard",
-    requiredPermissions: ["manage:dashboards"],
-  },
+  // {
+  //   label: "Dashboard",
+  //   href: "/dashboard",
+  //   requiredPermissions: ["manage:dashboards"],
+  // },
   {
     label: "Compliance Documents",
     href: "/user-documents",
