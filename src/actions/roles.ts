@@ -6,7 +6,6 @@ import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { RoleFormValues, roleSchema } from "./roles.validation";
-import { nullToUndefined } from "@/lib/utils";
 
 // Get all roles with their permissions
 export async function getRoles() {
@@ -142,7 +141,7 @@ export async function createRole(data: RoleFormValues) {
 export async function updateRole(
   roleId: string,
   data: RoleFormValues,
-  permissionIds: string[],
+  permissionIds: string[]
 ) {
   const session = await getServerSession(authOptions);
 

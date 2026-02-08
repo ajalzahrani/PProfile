@@ -10,7 +10,6 @@ import {
   userFormSchema,
   type UserFormValuesWithRolesAndDepartments,
 } from "./users.validations";
-import { nullToUndefined } from "@/lib/utils";
 
 // Get all users with their roles
 export async function getUsers() {
@@ -161,7 +160,7 @@ export async function createUser(data: UserFormValuesWithRolesAndDepartments) {
 // Update an existing user
 export async function updateUser(
   userId: string,
-  data: UserFormValuesWithRolesAndDepartments,
+  data: UserFormValuesWithRolesAndDepartments
 ) {
   const session = await getServerSession(authOptions);
 

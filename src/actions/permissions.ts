@@ -9,7 +9,6 @@ import {
   PermissionFormValues,
   permissionSchema,
 } from "./permissions.validation";
-import { nullToUndefined } from "@/lib/utils";
 
 // Get all permissions
 export async function getPermissions() {
@@ -115,7 +114,7 @@ export async function createPermission(data: PermissionFormValues) {
 // Update an existing permission
 export async function updatePermission(
   permissionId: string,
-  data: PermissionFormValues,
+  data: PermissionFormValues
 ) {
   const session = await getServerSession(authOptions);
 
