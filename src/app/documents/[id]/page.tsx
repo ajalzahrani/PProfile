@@ -31,7 +31,7 @@ export default async function DocumentPage({
   if (!documentResponse.success) {
     if (documentResponse.error === "Unauthorized") {
       redirect(
-        "/login?callbackUrl=" + encodeURIComponent(`/documents/${documentId}`)
+        "/login?callbackUrl=" + encodeURIComponent(`/documents/${documentId}`),
       );
     } else {
       notFound();
@@ -66,9 +66,11 @@ export default async function DocumentPage({
           <PermissionCheck required="delete:document">
             <DeleteDocumentDialog documentId={document.id} />
           </PermissionCheck>
-          {/* FLOW CONDITION: Only show edit button if document is in DRAFT or REJECTED status */}
+          {/* FLOW CONDITION: Only show edit button if document is in DRAFT, EXPIRED, or REJECTED status, or current version is expired */}
           {(document?.status?.name === "DRAFT" ||
-            document?.status?.name === "REJECTED") && (
+            document?.status?.name === "REJECTED" ||
+            (document?.currentVersion?.expirationDate &&
+              document?.currentVersion?.expirationDate < new Date())) && (
             <PermissionCheck required="edit:document">
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" asChild>
@@ -83,12 +85,12 @@ export default async function DocumentPage({
           {document?.status?.name === "DRAFT" && (
             <div className="flex items-center justify-between gap-2">
               <PermissionCheck required="approve:document">
-                  <ApproveDocumentButton documentId={documentId} />
+                <ApproveDocumentButton documentId={documentId} />
               </PermissionCheck>
 
               <PermissionCheck required="reject:document">
-                  <RejectDocumentButton documentId={documentId} />
-                </PermissionCheck>              
+                <RejectDocumentButton documentId={documentId} />
+              </PermissionCheck>
             </div>
           )}
         </div>
@@ -154,7 +156,7 @@ export default async function DocumentPage({
                     key={v.id}
                     className={cn(
                       "text-sm border-b border-border p-2",
-                      v.id === document.currentVersion?.id && "bg-muted"
+                      v.id === document.currentVersion?.id && "bg-muted",
                     )}>
                     <div className="flex justify-between">
                       <span className="font-medium">
