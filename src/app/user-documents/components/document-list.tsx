@@ -42,15 +42,20 @@ export function DocumentList({ complianceItems }: DocumentListProps) {
             <CardTitle className="text-lg font-bold">
               {item.categoryName}
             </CardTitle>
-            {item.status === "Missing" && item.requirement.isRequired && (
-              <Badge variant="destructive">Required</Badge>
-            )}
-            {item.status !== "Missing" && (
-              <Badge
-                variant={item.status === "Approved" ? "default" : "secondary"}>
-                {item.status}
-              </Badge>
-            )}
+            <div className="flex items-center gap-2">
+              {item.status === "Missing" && item.requirement.isRequired && (
+                <Badge variant="destructive">Required</Badge>
+              )}
+              {item.status !== "Missing" && (
+                <Badge
+                  variant={item.status === "Approved" ? "default" : "secondary"}>
+                  {item.status}
+                </Badge>
+              )}
+              {item.expiryDate && new Date(item.expiryDate) < new Date() && (
+                <Badge variant="destructive">Expired</Badge>
+              )}
+            </div>
           </CardHeader>
 
           <CardContent className="flex-1 pt-4">

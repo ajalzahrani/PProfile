@@ -10,11 +10,11 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  {
-    label: "Dashboard",
-    href: "/dashboard",
-    requiredPermissions: ["manage:dashboards"],
-  },
+  // {
+  //   label: "Dashboard",
+  //   href: "/dashboard",
+  //   requiredPermissions: ["manage:dashboards"],
+  // },
   {
     label: "Compliance Documents",
     href: "/user-documents",
@@ -22,7 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     label: "Profile",
-    href: "/person-profile",
+    href: "/user-profile",
     requiredPermissions: ["manage:profiles"],
   },
   {
@@ -36,23 +36,23 @@ export const NAV_ITEMS: NavItem[] = [
     requiredPermissions: ["manage:admin-dashboards"],
   },
   {
-    label: "Certificates",
-    href: "/categories",
-    requiredPermissions: ["manage:categories"],
-  },
-  {
-    label: "Job Titles",
-    href: "/jobtitles",
-    requiredPermissions: ["manage:jobtitles"],
+    label: "Documents",
+    href: "/documents",
+    requiredPermissions: ["manage:documents"],
   },
   {
     label: "Others",
     requiredPermissions: ["manage:management"],
     children: [
       {
-        label: "Documents",
-        href: "/documents",
-        requiredPermissions: ["manage:documents"],
+        label: "Certificates",
+        href: "/categories",
+        requiredPermissions: ["manage:categories"],
+      },
+      {
+        label: "Job Titles",
+        href: "/jobtitles",
+        requiredPermissions: ["manage:jobtitles"],
       },
       {
         label: "Reports",

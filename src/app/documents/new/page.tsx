@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import { ChevronLeft, FileQuestion } from "lucide-react";
 import { SimplePdfViewer } from "../../../components/pdf-components/simple-pdf-viewer";
-import { uploadCertificateAction } from "@/actions/documents";
+import { saveDocumentAction } from "@/actions/documents";
 import { DocumentUploadForm } from "@/app/user-documents/components/document-upload-form";
 
 export default function NewDocumentPage() {
@@ -73,7 +73,7 @@ export default function NewDocumentPage() {
     }
 
     // CALL THE SERVER ACTION
-    const result = await uploadCertificateAction(null, formData);
+    const result = await saveDocumentAction(null, formData);
 
     if (result.success) {
       toast({ title: "Success", description: result.message });

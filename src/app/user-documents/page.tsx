@@ -28,7 +28,7 @@ export default async function DocumentsPage() {
           <p className="mt-4 text-lg text-muted-foreground">
             Please update your profile first.
           </p>
-          <RedirectButton message={"Go to profile"} path={"/person-profile"} />
+          <RedirectButton message={"Go to profile"} path={"/user-profile"} />
         </div>
       </div>
     );
@@ -44,7 +44,7 @@ export default async function DocumentsPage() {
           <p className="mt-4 text-lg text-muted-foreground">
             Please inform your HR manager.
           </p>
-          {/* <RedirectButton message={"Go to profile"} path={"/person-profile"} /> */}
+          {/* <RedirectButton message={"Go to profile"} path={"/user-profile"} /> */}
         </div>
       </div>
     );

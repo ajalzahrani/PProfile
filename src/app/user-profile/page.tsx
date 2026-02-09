@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { ProfileForm } from "./components/profile-form";
+import { UserForm } from "./components/user-form";
 import { getItems } from "@/actions/refereces";
 import { getPersonById } from "@/actions/persons";
 import { PersonFormValues } from "@/actions/persons.validation";
@@ -8,7 +8,7 @@ import { checkServerPermission } from "@/lib/server-permissions";
 import { PageHeader } from "@/components/page-header";
 import { PageShell } from "@/components/page-shell";
 
-export default async function PersonProfilePage() {
+export default async function UserProfilePage() {
   await checkServerPermission("manage:profiles");
 
   const user = await getCurrentUser();
@@ -19,13 +19,30 @@ export default async function PersonProfilePage() {
 
   const personResult = await getPersonById(user.id);
 
-  if (!personResult.success) {
+  const [jobTitles, units, sponsors, nationalities, ranks] = await Promise.all([
+    getItems("jobTitle"),
+    getItems("unit"),
+    getItems("sponsor"),
+    getItems("nationality"),
+    getItems("rank"),
+  ]);
+
+  // If person doesn't exist, show create form
+  if (!personResult.success || !personResult.person) {
     return (
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold">Personal Information</h1>
-        </div>
-      </div>
+      <PageShell>
+        <PageHeader
+          heading="Complete Your Profile"
+          text="Please fill in your personal information to continue"></PageHeader>
+        <UserForm
+          initialData={null}
+          jobTitles={jobTitles.data}
+          units={units.data}
+          sponsors={sponsors.data}
+          nationalities={nationalities.data}
+          ranks={ranks.data}
+        />
+      </PageShell>
     );
   }
 
@@ -60,20 +77,12 @@ export default async function PersonProfilePage() {
       : undefined,
   };
 
-  const [jobTitles, units, sponsors, nationalities, ranks] = await Promise.all([
-    getItems("jobTitle"),
-    getItems("unit"),
-    getItems("sponsor"),
-    getItems("nationality"),
-    getItems("rank"),
-  ]);
-
   return (
     <PageShell>
       <PageHeader
         heading="Profile Update"
         text="Update your personal information"></PageHeader>
-      <ProfileForm
+      <UserForm
         initialData={personObject}
         jobTitles={jobTitles.data}
         units={units.data}

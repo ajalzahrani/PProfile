@@ -5,14 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function nullToUndefined<T>(obj: T): any {
-  if (obj === null) return undefined;
-  if (typeof obj !== "object") return obj;
-
-  return Object.fromEntries(
-    Object.entries(obj as Record<string, any>).map(([key, value]) => [
-      key,
-      nullToUndefined(value),
-    ]),
-  );
+export function formatDate(date: Date) {
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }

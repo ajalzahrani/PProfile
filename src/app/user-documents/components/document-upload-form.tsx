@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { uploadCertificateAction } from "@/actions/documents";
+import { saveDocumentAction } from "@/actions/documents";
 import { useState, useActionState, ChangeEvent, useEffect } from "react";
 import type React from "react";
 import { Progress, ProgressTrack, ProgressIndicator } from "@/components/ui/progress";
@@ -30,7 +30,7 @@ export function DocumentUploadForm({
   categoryName,
   requiresExpiry,
 }: Props) {
-  const [state, action] = useActionState(uploadCertificateAction, null);
+  const [state, action] = useActionState(saveDocumentAction, null);
   const [fileName, setFileName] = useState<string>("");
   const [clientError, setClientError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);

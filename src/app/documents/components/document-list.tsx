@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Eye, FileEdit, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Prisma } from "@prisma/client";
 import {
   Dialog,
   DialogContent,
@@ -22,10 +22,31 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { deleteDocument } from "@/actions/documents";
+import { deleteDocument } from "@/actions/document-delete-actions";
+import { formatDate } from "@/lib/utils";
 
 interface DocumentListProps {
   documents: any[];
+}
+
+function getStatusBadge(document: any) {
+  const expirationDate = document.currentVersion?.expirationDate;
+  const statusName = document.status.name;
+
+  console.log(statusName + " - " + document.id);
+
+  if (statusName.toUpperCase() === "EXPIRED") {
+    return <Badge variant="destructive">EXPIRED</Badge>;
+  }
+
+  if (expirationDate) {
+    if (expirationDate < new Date()) {
+      return <Badge variant="destructive">EXPIRED</Badge>;
+    }
+    return <Badge variant="default">{statusName.toUpperCase()}</Badge>;
+  }
+
+  return <Badge variant="default">{statusName.toUpperCase()}</Badge>;
 }
 
 export function DocumentList({ documents }: DocumentListProps) {
@@ -75,12 +96,11 @@ export function DocumentList({ documents }: DocumentListProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-
                 <TableHead>Created By</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead>Updated At</TableHead>
+                <TableHead>Expires At</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Version</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -90,16 +110,16 @@ export function DocumentList({ documents }: DocumentListProps) {
                   <TableRow key={document.id}>
                     <TableCell>{document.title}</TableCell>
                     <TableCell>{document.creator.name}</TableCell>
+                    <TableCell>{formatDate(document.createdAt)}</TableCell>
+                    <TableCell>{formatDate(document.updatedAt)}</TableCell>
                     <TableCell>
-                      {document.createdAt.toLocaleDateString()}
+                      {document.currentVersion?.expirationDate
+                        ? formatDate(document.currentVersion?.expirationDate)
+                        : "N/A"}
                     </TableCell>
-                    <TableCell>
-                      {document.updatedAt.toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>{document.status.name}</TableCell>
-                    <TableCell>
-                      {document.currentVersion?.versionNumber}
-                    </TableCell>
+                    <TableCell>{getStatusBadge(document)}</TableCell>
+
+                    {/* Actions */}
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon">
                         <Link href={`/documents/${document.id}`}>
