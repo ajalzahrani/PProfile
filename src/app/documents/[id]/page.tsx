@@ -12,6 +12,7 @@ import { DocumentVersionChangeNote } from "../components/document-version-change
 import { DeleteDocumentDialog } from "../components/document-delete-dialog";
 import ApproveDocumentButton from "../components/approve-document-button";
 import RejectDocumentButton from "../components/reject-document-button";
+import { BackButton } from "@/components/back-button";
 // import { SimplePdfViewer } from "../../../components/pdf-components/simple-pdf-viewer";
 
 export default async function DocumentPage({
@@ -54,12 +55,7 @@ export default async function DocumentPage({
       {/* Top navigation bar */}
       <div className="bg-background border-b px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link
-            href={user?.role === "AUDITOR" ? "/documents" : "/user-documents"}
-            className="flex items-center text-muted-foreground hover:text-foreground">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Documents
-          </Link>
+          <BackButton />
         </div>
 
         <div className="flex items-center gap-4">

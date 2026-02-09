@@ -9,9 +9,20 @@ import {
 } from "./document-configs.validation";
 
 export async function getUserComplianceStatus(userId: string) {
-  const user = getCurrentUser();
+  const user = await getCurrentUser();
 
   if (!user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  // Allow viewing other users' documents if the current user has manage:documents permission
+  // or if they're viewing their own documents
+  const isViewingOwnDocuments = user.id === userId;
+  const canViewOtherUsers =
+    user.permissions.includes("admin:all") ||
+    user.permissions.includes("manage:documents");
+
+  if (!isViewingOwnDocuments && !canViewOtherUsers) {
     return { success: false, error: "Unauthorized" };
   }
 

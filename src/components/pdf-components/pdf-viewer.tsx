@@ -69,6 +69,18 @@ export default function PdfViewer({ fileUrl }: { fileUrl: string }) {
     link.click();
   };
 
+  // Memoize options to prevent unnecessary reloads
+  const documentOptions = useMemo(
+    () => ({
+      // Remove cMapUrl to avoid CDN dependency - most PDFs don't need it
+      // If needed, you can host cmaps locally and set: cMapUrl: "/cmaps/"
+      httpHeaders: {
+        "Cache-Control": "no-cache",
+      },
+    }),
+    []
+  );
+
   return (
     <div>
       <div style={{ marginBottom: "1rem" }}>
@@ -120,13 +132,7 @@ export default function PdfViewer({ fileUrl }: { fileUrl: string }) {
         loading={null}
         onLoadSuccess={handleLoadSuccess}
         onLoadError={handleLoadError}
-        options={{
-          // Remove cMapUrl to avoid CDN dependency - most PDFs don't need it
-          // If needed, you can host cmaps locally and set: cMapUrl: "/cmaps/"
-          httpHeaders: {
-            "Cache-Control": "no-cache",
-          },
-        }}>
+        options={documentOptions}>
         {numPages && <Page pageNumber={pageNumber} scale={scale} />}
       </Document>
     </div>

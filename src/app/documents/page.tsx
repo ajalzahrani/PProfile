@@ -3,29 +3,24 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
-import { DocumentList } from "./components/document-list";
-import { getDocuments } from "@/actions/documents";
 import { checkServerPermission } from "@/lib/server-permissions";
 import { PermissionCheck } from "@/components/auth/permission-check";
+import { DocumentUserList } from "./components/document-user-list";
+import { getDocumentUserList } from "@/actions/documents";
 
 export default async function DocumentsPage() {
   await checkServerPermission("manage:documents");
 
-  const documents = await getDocuments();
-  if (!documents.success) {
+  const result = await getDocumentUserList();
+  if (!result.success) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background">
         <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
           <h1 className="text-4xl font-bold tracking-tight">
-            No documents found
+            No users found asdf
           </h1>
           <p className="mt-4 text-lg text-muted-foreground rounded-md p-4">
-            <Link href="/documents/new">
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Create New Document
-              </Button>
-            </Link>
+            {result.error}
           </p>
         </div>
       </div>
@@ -45,7 +40,11 @@ export default async function DocumentsPage() {
         </Link>
       </PageHeader>
 
-      <DocumentList documents={documents.documents || []} />
+      {/* <DocumentList documents={documents.documents || []} /> */}
+      <DocumentUserList
+        users={result.data?.users || []}
+        jobtitleRequiredDocuments={result.data?.jobtitleRequiredDocuments || []}
+      />
     </PageShell>
   );
 }

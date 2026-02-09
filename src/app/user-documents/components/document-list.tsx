@@ -27,9 +27,13 @@ interface ComplianceItem {
 
 interface DocumentListProps {
   complianceItems: ComplianceItem[] | undefined;
+  targetUserId?: string; // Optional: ID of user to upload documents for (for admin/auditor)
 }
 
-export function DocumentList({ complianceItems }: DocumentListProps) {
+export function DocumentList({
+  complianceItems,
+  targetUserId,
+}: DocumentListProps) {
   if (!complianceItems) {
     return <div>Loading...</div>;
   }
@@ -64,6 +68,7 @@ export function DocumentList({ complianceItems }: DocumentListProps) {
                 categoryId={item.requirement.documentCategoryId}
                 categoryName={item.categoryName}
                 requiresExpiry={item.requirement.requiresExpiry}
+                targetUserId={targetUserId}
               />
             ) : (
               <div className="space-y-2">

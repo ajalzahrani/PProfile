@@ -15,6 +15,7 @@ interface Props {
   categoryId: string;
   categoryName: string;
   requiresExpiry: boolean; // Passed from your CertificateRequirement logic
+  targetUserId?: string; // Optional: ID of user to upload document for (for admin/auditor)
 }
 
 // Define a constant for your limit (e.g., 5MB)
@@ -29,6 +30,7 @@ export function DocumentUploadForm({
   categoryId,
   categoryName,
   requiresExpiry,
+  targetUserId,
 }: Props) {
   const [state, action] = useActionState(saveDocumentAction, null);
   const [fileName, setFileName] = useState<string>("");
@@ -104,6 +106,9 @@ export function DocumentUploadForm({
         value={categoryName + "_" + categoryId}
       />
       <input type="hidden" name="categoryId" value={categoryId} />
+      {targetUserId && (
+        <input type="hidden" name="targetUserId" value={targetUserId} />
+      )}
 
       {/* File Input */}
       <div className="space-y-2">

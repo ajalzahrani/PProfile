@@ -124,6 +124,172 @@ export async function getDocumentById(documentId: string) {
 }
 
 /**
+ * ### Get document user list
+ * This function is used to get the list of users who have documents
+ */
+export async function getDocumentUserList() {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { success: false, error: "Unauthorized" };
+  }
+  try {
+    const users = await prisma.user.findMany({
+      include: {
+        role: {
+          select: {
+            name: true,
+          },
+        },
+        department: {
+          select: {
+            name: true,
+          },
+        },
+        person: {
+          select: {
+            id: true,
+            jobTitleId: true,
+            jobTitle: {
+              select: {
+                id: true,
+                nameEn: true,
+              },
+            },
+          },
+        },
+        documents: {
+          select: {
+            id: true,
+            title: true,
+            categoryId: true,
+            status: {
+              select: {
+                name: true,
+              },
+            },
+            currentVersion: {
+              select: {
+                expirationDate: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Get all job title required documents
+    const jobtitleRequiredDocuments =
+      await prisma.certificateRequirement.findMany({
+        where: {
+          isRequired: true,
+          isActive: true,
+        },
+        select: {
+          jobTitleId: true,
+          documentCategoryId: true,
+          isRequired: true,
+          requiresExpiry: true,
+        },
+      });
+
+    // Calculate compliance for each user
+    const usersWithCompliance = users.map((user) => {
+      const person = user.person?.[0]; // Get first person record (should be unique)
+      const jobTitleId = person?.jobTitleId;
+
+      if (!jobTitleId) {
+        return {
+          ...user,
+          compliance: {
+            requiredCount: 0,
+            uploadedCount: 0,
+            validCount: 0,
+            isCompliant: false,
+            missingCategories: [],
+          },
+        };
+      }
+
+      // Get required document categories for this user's job title
+      const requiredCategories = jobtitleRequiredDocuments
+        .filter((req) => req.jobTitleId === jobTitleId)
+        .map((req) => req.documentCategoryId);
+
+      const requiredCount = requiredCategories.length;
+
+      // Valid statuses for compliance (exclude expired, rejected, draft, etc.)
+      const validStatuses = [
+        "APPROVED",
+        "PENDING_SIGNATURES",
+        "SIGNED",
+        "PUBLISHED",
+      ];
+      const invalidStatuses = ["EXPIRED", "REJECTED", "DRAFT", "DECLINED"];
+
+      // Count uploaded documents in required categories
+      const uploadedInRequiredCategories = user.documents.filter((doc) =>
+        doc.categoryId ? requiredCategories.includes(doc.categoryId) : false,
+      );
+
+      // Count valid documents (not expired and in valid status)
+      const now = new Date();
+      const validDocuments = uploadedInRequiredCategories.filter((doc) => {
+        const statusName = doc.status.name.toUpperCase();
+        // Exclude invalid statuses
+        if (invalidStatuses.includes(statusName)) {
+          return false;
+        }
+        // Check if status is valid
+        const isStatusValid = validStatuses.includes(statusName);
+        // Check expiration date if present
+        const expirationDate = doc.currentVersion?.expirationDate;
+        const isNotExpired =
+          !expirationDate || new Date(expirationDate) > now;
+        return isStatusValid && isNotExpired;
+      });
+
+      const uploadedCount = uploadedInRequiredCategories.length;
+      
+      // Count unique categories with valid documents (for compliance, we need at least one valid doc per category)
+      const validCategoryIds = new Set(
+        validDocuments.map((doc) => doc.categoryId).filter(Boolean),
+      );
+      const validCount = validCategoryIds.size; // Count unique categories with valid documents
+
+      // Find missing categories
+      const missingCategories = requiredCategories.filter(
+        (catId) => !validCategoryIds.has(catId),
+      );
+
+      const isCompliant =
+        requiredCount > 0 && validCount === requiredCount && missingCategories.length === 0;
+
+      return {
+        ...user,
+        compliance: {
+          requiredCount,
+          uploadedCount,
+          validCount,
+          isCompliant,
+          missingCategories,
+        },
+      };
+    });
+
+    return {
+      success: true,
+      data: {
+        users: usersWithCompliance || [],
+        jobtitleRequiredDocuments: jobtitleRequiredDocuments || [],
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching document user list:", error);
+    return { success: false, error: "Error fetching document user list" };
+  }
+}
+
+/**
  * ### Change document status
  */
 export async function changeDocumentStatus(
@@ -256,6 +422,7 @@ export async function saveDocumentAction(prevState: any, formData: FormData) {
     const expirationDateStr = formData.get("expirationDate") as string;
     const departmentIdsRaw = formData.get("departmentIds") as string;
     const isArchived = formData.get("isArchived") === "true";
+    const targetUserId = formData.get("targetUserId") as string | null;
 
     if (!file || !categoryId) {
       return {
@@ -264,7 +431,38 @@ export async function saveDocumentAction(prevState: any, formData: FormData) {
       };
     }
 
-    // 3. Prepare Buffer & Hash
+    // 3. Determine the document owner (creator)
+    // If targetUserId is provided, check if user has permission to upload for others
+    let documentOwnerId = user.id;
+    if (targetUserId && targetUserId !== user.id) {
+      // Check if user has permission to upload for others (admin or auditor)
+      const canUploadForOthers =
+        user.permissions.includes("admin:all") ||
+        user.permissions.includes("manage:documents");
+
+      if (!canUploadForOthers) {
+        return {
+          success: false,
+          error: "Unauthorized: You don't have permission to upload documents for other users",
+        };
+      }
+
+      // Verify target user exists
+      const targetUser = await prisma.user.findUnique({
+        where: { id: targetUserId },
+      });
+
+      if (!targetUser) {
+        return {
+          success: false,
+          error: "Target user not found",
+        };
+      }
+
+      documentOwnerId = targetUserId;
+    }
+
+    // 4. Prepare Buffer & Hash
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const hash = crypto.createHash("sha256").update(buffer).digest("hex");
@@ -302,19 +500,25 @@ export async function saveDocumentAction(prevState: any, formData: FormData) {
         status: { connect: { name: "DRAFT" } },
         isArchived,
         category: { connect: { id: categoryId } },
-        creator: { connect: { id: user.id } },
+        creator: { connect: { id: documentOwnerId } },
       },
     });
     documentId = newDoc.id;
 
     // 7. Leverage your existing Local File Storage logic
+    // Use user.id for uploadedBy (who uploaded it) and documentOwnerId for creator (who owns it)
+    const changeNote =
+      documentOwnerId === user.id
+        ? "Initial Certificate Upload"
+        : `Uploaded by ${user.name} on behalf of user`;
+
     const versionResult = await generateDocumentVersionTx(
       documentId,
       file.name,
       buffer,
       hash,
-      user.id,
-      "Initial Certificate Upload",
+      user.id, // uploadedBy - tracks who actually uploaded the file
+      changeNote,
       expirationDateStr ? new Date(expirationDateStr) : null,
       "DRAFT",
     );
@@ -331,6 +535,9 @@ export async function saveDocumentAction(prevState: any, formData: FormData) {
     // 8. Refresh the UI
     revalidatePath("/user-profile");
     revalidatePath("/user-documents");
+    if (targetUserId) {
+      revalidatePath(`/user-documents/${targetUserId}`);
+    }
 
     return {
       success: true,
