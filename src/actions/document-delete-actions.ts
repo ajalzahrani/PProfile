@@ -3,9 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import {
-  DeletionType,
-} from "./documents.validation";
+import { DeletionType } from "./documents.validation";
 import { revalidatePath } from "next/cache";
 import { rm, mkdir } from "fs/promises";
 import path from "path";
@@ -32,7 +30,7 @@ export async function deleteDocument(
     skipFileDeletion?: boolean;
     skipDatabaseDeletion?: boolean;
     logDeletion?: boolean;
-  } = {}
+  } = {},
 ): Promise<{
   success: boolean;
   error?: string;
@@ -65,7 +63,7 @@ export async function deleteDocument(
 
     if (logDeletion) {
       console.log(
-        `Starting deletion of document ${documentId} (${document.title})`
+        `Starting deletion of document ${documentId} (${document.title})`,
       );
       console.log(`Deletion type: ${deletionType}`);
       console.log(`Versions: ${document.versions.length}`);
@@ -105,7 +103,7 @@ export async function deleteDocument(
       if (deletionResult) {
         console.log(`Files deleted: ${deletionResult.deletedFiles.length}`);
         console.log(
-          `Total size freed: ${deletionResult.totalSizeDeleted} bytes`
+          `Total size freed: ${deletionResult.totalSizeDeleted} bytes`,
         );
       }
     }
@@ -134,7 +132,9 @@ export async function getDocumentFileStats(documentId: string): Promise<{
   fileTypes: Record<string, number>;
   filePaths: string[];
 }> {
-  const baseDir = path.join(process.cwd(), "public", "uploads", documentId);
+  const { getStorageBasePath } = await import("@/lib/storage");
+  const storageBase = getStorageBasePath();
+  const baseDir = path.join(storageBase, documentId);
   const stats = {
     totalFiles: 0,
     totalSize: 0,
@@ -183,7 +183,7 @@ export async function getDocumentFileStats(documentId: string): Promise<{
  */
 export async function deleteDocumentFiles(
   documentId: string,
-  deletionType: DeletionType = DeletionType.HARD
+  deletionType: DeletionType = DeletionType.HARD,
 ): Promise<DeletionResult> {
   const result: DeletionResult = {
     success: true,
@@ -192,7 +192,9 @@ export async function deleteDocumentFiles(
     totalSizeDeleted: 0,
   };
 
-  const baseDir = path.join(process.cwd(), "public", "uploads", documentId);
+  const { getStorageBasePath } = await import("@/lib/storage");
+  const storageBase = getStorageBasePath();
+  const baseDir = path.join(storageBase, documentId);
 
   if (!existsSync(baseDir)) {
     return result;
@@ -204,7 +206,7 @@ export async function deleteDocumentFiles(
     // Get file statistics before deletion
     const stats = await getDocumentFileStats(documentId);
     console.log(
-      `Deleting document ${documentId}: ${stats.totalFiles} files, ${stats.totalSize} bytes`
+      `Deleting document ${documentId}: ${stats.totalFiles} files, ${stats.totalSize} bytes`,
     );
 
     if (deletionType === DeletionType.SOFT) {
@@ -219,7 +221,7 @@ export async function deleteDocumentFiles(
         process.cwd(),
         "public",
         "archive",
-        documentId
+        documentId,
       );
       await mkdir(path.dirname(archiveDir), { recursive: true });
 
@@ -269,7 +271,7 @@ export async function deleteDocumentFiles(
     await deleteDirectory(baseDir);
 
     console.log(
-      `Hard delete completed for document ${documentId}: ${result.deletedFiles.length} files deleted`
+      `Hard delete completed for document ${documentId}: ${result.deletedFiles.length} files deleted`,
     );
   } catch (error) {
     result.success = false;
@@ -285,7 +287,7 @@ export async function deleteDocumentFiles(
  */
 export async function batchDeleteDocuments(
   documentIds: string[],
-  deletionType: DeletionType = DeletionType.HARD
+  deletionType: DeletionType = DeletionType.HARD,
 ): Promise<{
   success: boolean;
   results: Array<{ documentId: string; success: boolean; error?: string }>;
@@ -345,10 +347,11 @@ export async function cleanupOrphanedFiles(): Promise<{
   };
 
   try {
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    const { getStorageBasePath } = await import("@/lib/storage");
+    const storageBase = getStorageBasePath();
     const { readdir } = await import("fs/promises");
 
-    const documentDirs = await readdir(uploadsDir, { withFileTypes: true });
+    const documentDirs = await readdir(storageBase, { withFileTypes: true });
 
     for (const dir of documentDirs) {
       if (dir.isDirectory()) {
@@ -361,7 +364,7 @@ export async function cleanupOrphanedFiles(): Promise<{
 
         if (!document) {
           // Document doesn't exist in database, clean up files
-          const dirPath = path.join(uploadsDir, documentId);
+          const dirPath = path.join(storageBase, documentId);
           try {
             await rm(dirPath, { recursive: true, force: true });
             result.cleanedFiles.push(dirPath);

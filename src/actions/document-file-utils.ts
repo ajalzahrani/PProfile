@@ -1,10 +1,10 @@
 import path from "path";
-import { mkdir , writeFile} from "fs/promises";
+import { mkdir, writeFile } from "fs/promises";
 import { FileType } from "@/actions/documents.validation";
 
 /**
  * ### Get organized file path for document
- * Call this function to get the absolute and relative file paths for a document based on document 
+ * Call this function to get the absolute and relative file paths for a document based on document
  * @param documentId - The ID of the document
  * @param fileName - The name of the file
  * @param fileType - The type of the file
@@ -15,9 +15,11 @@ export async function getOrganizedFilePath(
   documentId: string,
   fileName: string,
   fileType: FileType,
-  versionNumber?: number
+  versionNumber?: number,
 ): Promise<{ absolutePath: string; relativePath: string }> {
-  const baseDir = path.join(process.cwd(), "public", "uploads", documentId);
+  const { getStorageBasePath } = await import("@/lib/storage");
+  const storageBase = getStorageBasePath();
+  const baseDir = path.join(storageBase, documentId);
   const typeDir = path.join(baseDir, fileType);
 
   let finalFileName: string;
@@ -61,39 +63,43 @@ export async function saveOrganizedFile(
   fileName: string,
   buffer: Buffer,
   documentStatus: string,
-  versionNumber?: number
+  versionNumber?: number,
 ): Promise<{ error?: string; relativePath?: string }> {
-
-    // Determine file type based on document status
+  // Determine file type based on document status
   const fileType =
     documentStatus != "SIGNED" && documentStatus != "PUBLISHED"
       ? FileType.DRAFT
       : documentStatus == "SIGNED"
-      ? FileType.SIGNED
-      : FileType.PUBLISHED;
+        ? FileType.SIGNED
+        : FileType.PUBLISHED;
 
   const { absolutePath, relativePath } = await getOrganizedFilePath(
     documentId,
     fileName,
     fileType,
-    versionNumber
+    versionNumber,
   );
 
   try {
     // Create directory if it doesn't exist
-    await mkdir(path.dirname(absolutePath), { recursive: true }).catch((err: any) => {
-      console.error("Error creating directory:", err);
-      return { error: "Error creating directory: " + err.message, relativePath: undefined };
-    });
+    await mkdir(path.dirname(absolutePath), { recursive: true }).catch(
+      (err: any) => {
+        console.error("Error creating directory:", err);
+        return {
+          error: "Error creating directory: " + err.message,
+          relativePath: undefined,
+        };
+      },
+    );
 
     // Write file
-    await writeFile(absolutePath, buffer).catch((err: any) => {
-      console.error("Error saving organized file:", err);
-      return { error: "Error saving organized file: " + err.message };
-    });
+    await writeFile(absolutePath, buffer);
     return { relativePath: relativePath, error: undefined };
   } catch (error) {
     console.error("Error saving organized file:", error);
-    return { error: "Error saving organized file: " + error, relativePath: undefined };
+    return {
+      error: "Error saving organized file: " + error,
+      relativePath: undefined,
+    };
   }
 }

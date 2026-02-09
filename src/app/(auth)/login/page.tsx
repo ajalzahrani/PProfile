@@ -89,8 +89,12 @@ function Login() {
 
   useEffect(() => {
     const fetchEmails = async () => {
-      const emails = await getTestingEmails();
-      setTestingEmails(emails.filter(Boolean));
+      const { success, emails } = await getTestingEmails();
+      if (success) {
+        setTestingEmails(emails);
+      } else {
+        setError("Failed to fetch testing emails");
+      }
     };
     fetchEmails();
   }, []);

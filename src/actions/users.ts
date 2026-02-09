@@ -160,7 +160,7 @@ export async function createUser(data: UserFormValuesWithRolesAndDepartments) {
 // Update an existing user
 export async function updateUser(
   userId: string,
-  data: UserFormValuesWithRolesAndDepartments
+  data: UserFormValuesWithRolesAndDepartments,
 ) {
   const session = await getServerSession(authOptions);
 
@@ -296,11 +296,20 @@ export async function deleteUser(userId: string) {
 }
 
 export const getTestingEmails = async () => {
-  const emails = await prisma.user.findMany({
-    select: {
-      email: true,
-    },
-  });
+  try {
+    const emails = await prisma.user.findMany({
+      select: {
+        email: true,
+      },
+    });
 
-  return emails.map((email) => email.email);
+    return { success: true, emails: emails.map((email) => email.email) };
+  } catch (error) {
+    console.error("Error fetching testing emails:", error);
+    return {
+      success: false,
+      error: "Failed to fetch testing emails",
+      emails: [],
+    };
+  }
 };

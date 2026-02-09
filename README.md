@@ -41,6 +41,31 @@
 - [ ] Should include user location Should view all requiremnts for a
       jobtitle or location
 
+## Configuration
+
+### File Storage Location
+
+By default, uploaded files are stored in `public/uploads/` within the project directory. To store files outside the project folder (recommended for production), set the `STORAGE_PATH` environment variable:
+
+**Windows:**
+
+```env
+STORAGE_PATH=C:\uploads
+```
+
+**Linux/Mac:**
+
+```env
+STORAGE_PATH=/var/uploads
+```
+
+**Notes:**
+
+- The directory will be created automatically if it doesn't exist
+- Ensure the application has read/write permissions to the storage directory
+- File paths in the database remain relative (`/uploads/...`) for portability
+- The API route `/api/pdf` automatically handles serving files from the configured storage location
+
 ### How to solve
 
 $env:NODE_TLS_REJECT_UNAUTHORIZED='0'; npm run prisma:generate;
