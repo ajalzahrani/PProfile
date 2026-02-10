@@ -99,7 +99,7 @@ export function DocumentUploadForm({
   };
 
   return (
-    <form action={action} onSubmit={handleSubmit} className="space-y-4">
+    <form action={action} onSubmit={handleSubmit} className="flex flex-1 flex-col min-h-0 space-y-4">
       <input
         type="hidden"
         name="title"
@@ -149,11 +149,6 @@ export function DocumentUploadForm({
       {/* Show Progress Bar only if there's no client error */}
       {!clientError && <FormStatus progress={state?.success ? 100 : 0} />}
 
-      {/* Submit Button */}
-      <Button type="submit" className="w-full">
-        <FormStatusButton />
-      </Button>
-
       {/* Client-side Validation Error */}
       {clientError && (
         <Alert variant="destructive">
@@ -178,6 +173,11 @@ export function DocumentUploadForm({
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Submit Button */}
+      <Button type="submit" className="w-full mt-auto">
+        <FormStatusButton />
+      </Button>
     </form>
   );
 }

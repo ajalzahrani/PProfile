@@ -62,7 +62,7 @@ export function DocumentList({
             </div>
           </CardHeader>
 
-          <CardContent className="flex-1 pt-4">
+          <CardContent className="flex-1 flex flex-col min-h-0 pt-4">
             {item.status === "Missing" || item.status === "Rejected" ? (
               <DocumentUploadForm
                 categoryId={item.requirement.documentCategoryId}
