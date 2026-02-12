@@ -1,8 +1,9 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
-import { NextAuthOptions, getServerSession } from "next-auth";
+import { NextAuthOptions, User, getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { authenticateUser } from "@/actions/auths";
+import ldap from "ldapjs";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -14,6 +15,45 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   providers: [
+    // CredentialsProvider({
+    //   name: "LDAP",
+    //   credentials: {
+    //     username: { label: "DN", type: "text", placeholder: "" },
+    //     password: { label: "Password", type: "password" },
+    //   },
+    //   async authorize(credentials, req) {
+    //     // You might want to pull this call out so we're not making a new LDAP client on every login attemp
+    //     const client = ldap.createClient({
+    //       url: process.env.LDAP_URI,
+    //     });
+
+    //     // Essentially promisify the LDAPJS client.bind function
+    //     return new Promise((resolve, reject) => {
+    //       client.bind(
+    //         credentials?.username || "",
+    //         credentials?.password || "",
+    //         (error: any) => {
+    //           if (error) {
+    //             console.error("Failed");
+    //             reject();
+    //           } else {
+    //             console.log("Logged in");
+    //             resolve({
+    //               id: credentials?.username || "",
+    //               email: credentials?.username || "",
+    //               password: credentials?.password || "",
+    //               name: credentials?.username || "",
+    //               role: "USER",
+    //               roleId: "USER_ID",
+    //               departmentId: "DEPARTMENT_ID",
+    //               permissions: ["USER_PERMISSIONS"],
+    //             } as User);
+    //           }
+    //         },
+    //       );
+    //     });
+    //   },
+    // }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -27,7 +67,7 @@ export const authOptions: NextAuthOptions = {
 
         const user = await authenticateUser(
           credentials.email,
-          credentials.password
+          credentials.password,
         );
 
         if (!user) {
