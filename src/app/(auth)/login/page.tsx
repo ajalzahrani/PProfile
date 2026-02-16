@@ -31,7 +31,8 @@ import {
 import { useSearchParams } from "next/navigation";
 
 const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  // email: z.string().email("Invalid email address"),
+  username: z.string().min(2, "Username must be at least 2 characters"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
@@ -57,8 +58,8 @@ function Login() {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "adminpassword",
+      username: "823631",
+      password: "Nostring@2",
     },
   });
 
@@ -68,13 +69,13 @@ function Login() {
 
     try {
       const result = await signIn("credentials", {
-        email: data.email,
+        username: data.username,
         password: data.password,
         redirect: false,
       });
 
       if (result?.error) {
-        setError("Invalid email or password");
+        setError("Invalid username or password");
         setIsLoading(false);
         return;
       }
@@ -120,7 +121,7 @@ function Login() {
               <Select
                 disabled={testingEmails.length === 0}
                 onValueChange={(value: string) => {
-                  setValue("email", value);
+                  setValue("username", value);
                 }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Testing Email" />
@@ -135,15 +136,25 @@ function Login() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
+              {/*
               <Input
                 id="email"
                 type="email"
                 placeholder="your.email@example.com"
                 {...register("email")}
               />
-              {errors.email && (
-                <p className="text-sm text-red-500">{errors.email.message}</p>
+              */}
+              <Input
+                id="username"
+                type="text"
+                placeholder="Enter your username"
+                {...register("username")}
+              />
+              {errors.username && (
+                <p className="text-sm text-red-500">
+                  {errors.username.message}
+                </p>
               )}
             </div>
             <div className="space-y-2">

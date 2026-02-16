@@ -122,3 +122,114 @@ export async function authenticateUser(email: string, password: string) {
     permissions: permissions.map((p) => p.code),
   };
 }
+
+export async function authenticateUserLDAP(username: string, password: string) {
+  if (!username || !password) {
+    throw new Error("Username and password are required");
+    return null;
+  }
+
+  // Get user from database
+  const user = await prisma.user.findUnique({
+    where: {
+      username: username,
+    },
+    include: {
+      role: {
+        select: { id: true, name: true },
+      },
+      department: {
+        select: { id: true },
+      },
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+    return null;
+  }
+
+  // Allow admin without LDAP authentication
+  if (user && user.role.name === "ADMIN") {
+    const isValidPassword = await bcrypt.compare(
+      password,
+      user.password as string,
+    );
+
+    if (!isValidPassword) {
+      throw new Error("Invalid password");
+      return null;
+    }
+
+    const permissions = await prisma.permission.findMany({
+      where: { roles: { some: { roleId: user.role.id } } },
+    });
+
+    return {
+      ...user,
+      departmentId: user.departmentId || undefined,
+      permissions: permissions.map((p) => p.code),
+    };
+  }
+
+  // LDAP Authentication
+  const response = await fetch(
+    `${process.env.LDAP_URI}/login?username=${username}&password=${password}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.LDAP_KEY as string,
+      },
+    },
+  );
+
+  if (!response || !response.ok || response.status !== 200) {
+    throw new Error(`Failed to authenticate user ${response.statusText}`);
+    return null;
+  }
+
+  const data = await response.json();
+
+  // Check if user has email and displayName
+  let updatedUser = user;
+  if (!user.email || !user.name) {
+    // Update user data email and display name
+    updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        email: data.email,
+        name: data.displayName,
+      },
+      include: {
+        role: {
+          select: { id: true, name: true },
+        },
+        department: {
+          select: { id: true },
+        },
+      },
+    });
+    updatedUser = updatedUser;
+  }
+
+  const permissions = await prisma.permission.findMany({
+    where: { roles: { some: { roleId: user.role.id } } },
+  });
+
+  if (!permissions) {
+    throw new Error("Permissions not found");
+    return null;
+  }
+
+  console.log("updated user", {
+    ...updatedUser,
+    permissions: permissions.map((p) => p.code),
+  });
+
+  return {
+    ...updatedUser,
+    departmentId: updatedUser.departmentId || undefined,
+    permissions: permissions.map((p) => p.code),
+  };
+}
