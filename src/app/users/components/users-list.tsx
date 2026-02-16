@@ -74,7 +74,8 @@ export function UserList({ users }: UserListProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
+                <TableHead>Display Name</TableHead>
+                <TableHead>Username</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Department</TableHead>
@@ -86,6 +87,7 @@ export function UserList({ users }: UserListProps) {
                 users.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.username}</TableCell>
                     <TableCell>{user.role.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.department?.name}</TableCell>

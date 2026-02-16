@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,10 @@ import { PageHeader } from "@/components/page-header";
 import { PageShell } from "@/components/page-shell";
 import { RoleFormValues } from "@/actions/roles.validation";
 import { DepartmentFormValues } from "@/actions/departments.validation";
-import { Label } from "@/components/ui/label";
+import { FormLabel } from "@/components/ui/form-label";
+import { getRequiredFields } from "@/lib/zod-utils";
+
+const requiredFields = getRequiredFields(userFormSchema);
 
 export default function NewUserPage() {
   const router = useRouter();
@@ -42,12 +45,12 @@ export default function NewUserPage() {
     setValue,
     formState: { errors },
   } = useForm<UserFormValuesWithRolesAndDepartments>({
-    resolver: zodResolver(userFormSchema),
+    resolver: zodResolver(userFormSchema) as Resolver<UserFormValuesWithRolesAndDepartments>,
     defaultValues: {
       username: "",
-      name: "",
-      email: "",
-      password: "",
+      name: null,
+      email: null,
+      password: null,
       role: {
         id: "",
         name: "",
@@ -144,11 +147,11 @@ export default function NewUserPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <FormLabel htmlFor="name" required={requiredFields.has("name")}>Display Name</FormLabel>
             <Input
               id="name"
               {...register("name")}
-              placeholder="Enter user name"
+              placeholder="Enter display name"
               className="mt-1"
             />
             {errors.name && (
@@ -157,22 +160,7 @@ export default function NewUserPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
-            <Input
-              id="username"
-              {...register("username")}
-              placeholder="Enter username"
-              className="mt-1"
-            />
-            {errors.username && (
-              <p className="mt-1 text-sm text-red-500">
-                {errors.username.message}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <FormLabel htmlFor="email" required={requiredFields.has("email")}>Email</FormLabel>
             <Input
               id="email"
               type="email"
@@ -188,7 +176,24 @@ export default function NewUserPage() {
           </div>
 
           <div className="space-y-2">
-            <Label>Password</Label>
+            <FormLabel htmlFor="username" required={requiredFields.has("username")}>
+              Username
+            </FormLabel>
+            <Input
+              id="username"
+              {...register("username")}
+              placeholder="Enter username"
+              className="mt-1"
+            />
+            {errors.username && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.username.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <FormLabel required={requiredFields.has("password")}>Password</FormLabel>
             <div className="flex items-center gap-2">
               <Button
                 type="button"
@@ -223,7 +228,7 @@ export default function NewUserPage() {
           <Separator />
 
           <div className="space-y-2">
-            <Label>Role</Label>
+            <FormLabel required={requiredFields.has("role")}>Role</FormLabel>
             <div className="grid gap-4">
               {roles.map((role) => (
                 <div key={role.id} className="flex items-center space-x-2">
@@ -240,11 +245,11 @@ export default function NewUserPage() {
                       }
                     }}
                   />
-                  <Label
+                  <FormLabel
                     htmlFor={`role-${role.id}`}
                     className="text-sm font-medium">
                     {role.name}
-                  </Label>
+                  </FormLabel>
                 </div>
               ))}
             </div>
@@ -258,10 +263,10 @@ export default function NewUserPage() {
           <Separator />
 
           <div className="space-y-2">
-            <Label className="flex items-center">
+            <FormLabel className="flex items-center" required={requiredFields.has("department")}>
               <Building2 className="mr-2 h-4 w-4" />
               Department
-            </Label>
+            </FormLabel>
             <div className="grid gap-4">
               {departments.map((department) => (
                 <div
@@ -279,11 +284,11 @@ export default function NewUserPage() {
                       }
                     }}
                   />
-                  <Label
+                  <FormLabel
                     htmlFor={`department-${department.id}`}
                     className="text-sm font-medium">
                     {department.name}
-                  </Label>
+                  </FormLabel>
                 </div>
               ))}
             </div>

@@ -77,6 +77,7 @@ export function JobTitleList({ jobtitles }: JobTitleListProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Name (Ar)</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -85,6 +86,7 @@ export function JobTitleList({ jobtitles }: JobTitleListProps) {
                 jobtitles.map((jobTitle) => (
                   <TableRow key={jobTitle.id}>
                     <TableCell>{jobTitle.nameEn}</TableCell>
+                    <TableCell>{jobTitle.nameAr}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon">
                         <Link href={`/jobtitles/${jobTitle.id}`}>

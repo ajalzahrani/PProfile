@@ -300,3 +300,32 @@ export async function deactivatePerson(personId: string) {
     return { success: false, error: "Error deactivating person" };
   }
 }
+
+/**
+ * Get a person from the ERP system
+ * @param employeeNumber LeaderZero Employee number
+ * @returns { success: boolean, data: any }
+ */
+export async function getERPPerson(employeeNumber: string) {
+  if (!employeeNumber) {
+    return { success: false, error: "Employee number is required" };
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.ERP_URL}/employees/${employeeNumber}`,
+    );
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: `Request failed with status ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+}

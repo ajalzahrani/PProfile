@@ -107,26 +107,28 @@ export async function createUser(data: UserFormValuesWithRolesAndDepartments) {
       ? await bcrypt.hash(validatedData.password, 10)
       : undefined;
 
-    // Check if email already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email: validatedData.email },
-    });
+    // Check if email already exists (only when email is provided)
+    if (validatedData.email) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: validatedData.email },
+      });
 
-    if (existingUser) {
-      return { success: false, error: "Email already in use" };
+      if (existingUser) {
+        return { success: false, error: "Email already in use" };
+      }
     }
 
     // Create the user with roles and departments
     const user = await prisma.user.create({
       data: {
-        name: validatedData.name,
-        username: validatedData.name,
-        email: validatedData.email,
-        password: hashedPassword || "",
+        name: validatedData.name ?? null,
+        username: validatedData.username,
+        email: validatedData.email ?? null,
+        ...(hashedPassword ? { password: hashedPassword } : {}),
         role: {
           connect: { id: validatedData.role.id },
         },
-        ...(validatedData.department
+        ...(validatedData.department?.id
           ? {
               department: {
                 connect: { id: validatedData.department.id },
@@ -178,27 +180,37 @@ export async function updateUser(
       hashedPassword = await bcrypt.hash(validatedData.password, 10);
     }
 
-    // Check if email already exists (for another user)
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        email: validatedData.email,
-        NOT: { id: userId },
-      },
-    });
+    // Check if email already exists (only when email is provided)
+    if (validatedData.email) {
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          email: validatedData.email,
+          NOT: { id: userId },
+        },
+      });
 
-    if (existingUser) {
-      return { success: false, error: "Email already in use by another user" };
+      if (existingUser) {
+        return {
+          success: false,
+          error: "Email already in use by another user",
+        };
+      }
     }
 
     // Start a transaction to handle the user update
     await prisma.$transaction(async (tx) => {
-      // Update basic user info
-      const userData: any = {
-        name: validatedData.name,
-        email: validatedData.email,
+      // Update basic user info (use null for undefined optional fields)
+      const userData: {
+        name: string | null;
+        email: string | null;
+        password?: string;
+        username: string;
+      } = {
+        name: validatedData.name ?? null,
+        email: validatedData.email ?? null,
+        username: validatedData.username,
       };
 
-      // Only update password if provided
       if (hashedPassword) {
         userData.password = hashedPassword;
       }
@@ -209,8 +221,8 @@ export async function updateUser(
         data: userData,
       });
 
-      // Update department assignments
-      if (validatedData.department)
+      // Update department (connect when provided, disconnect when cleared)
+      if (validatedData.department?.id) {
         await tx.user.update({
           where: { id: userId },
           data: {
@@ -219,6 +231,14 @@ export async function updateUser(
             },
           },
         });
+      } else {
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            department: { disconnect: true },
+          },
+        });
+      }
 
       // Update role assignments
       await tx.user.update({
