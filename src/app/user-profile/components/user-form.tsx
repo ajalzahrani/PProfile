@@ -253,6 +253,8 @@ export function UserForm({
                 <DatePicker
                   date={field.value || new Date()}
                   setDate={field.onChange}
+                  fromYear={1945}
+                  toYear={2006}
                 />
               )}
             />

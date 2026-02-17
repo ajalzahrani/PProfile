@@ -55,7 +55,14 @@ export default async function DocumentPage({
       {/* Top navigation bar */}
       <div className="bg-background border-b px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <BackButton />
+          {user.role === "AUDITOR" ? (
+            <BackButton href={`/documents`} message="Back to Documents" />
+          ) : (
+            <BackButton
+              href={`/user-documents/${user.id}`}
+              message="Back to User Documents"
+            />
+          )}
         </div>
 
         <div className="flex items-center gap-4">

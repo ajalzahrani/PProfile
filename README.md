@@ -35,11 +35,18 @@
 
 ### Document Approval
 
-- [ ] Should has Approval role
-- [ ] Should appove completed profile.
-- [ ] Should allow Approval role to edit profile to upload new documents
-- [ ] Should include user location Should view all requiremnts for a
+- [x] Should has Approval role
+- [x] Should appove completed profile.
+- [x] Should allow Approval role to edit profile to upload new documents
+- [x] Should include user location Should view all requiremnts for a
       jobtitle or location
+- [x] Edit back button in document/[id]/edit page
+- [ ] Add tanstack table for users
+- [ ] Add application tour using https://driverjs.com/
+- [x] Fix Date of Birth calendar component
+- [ ] ERP Integration
+  - [ ] Import job titles from ERP
+  - [ ] Import departments from ERP
 
 ## Configuration
 

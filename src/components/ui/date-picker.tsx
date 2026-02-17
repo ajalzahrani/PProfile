@@ -14,9 +14,13 @@ import { cn } from "@/lib/utils";
 export function DatePicker({
   date,
   setDate,
+  fromYear,
+  toYear,
 }: {
   date: Date;
   setDate: (date: Date) => void;
+  fromYear?: number;
+  toYear?: number;
 }) {
   return (
     <Popover>
@@ -37,8 +41,8 @@ export function DatePicker({
           captionLayout="dropdown-buttons"
           selected={date}
           onSelect={(day) => setDate(day || new Date())}
-          fromYear={2025}
-          toYear={2035}
+          fromYear={fromYear || 2025}
+          toYear={toYear || 2035}
         />
       </PopoverContent>
     </Popover>

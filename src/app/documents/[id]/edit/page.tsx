@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useFormStatus } from "react-dom";
+import { BackButton } from "@/components/back-button";
 
 interface PageParams {
   id: string;
@@ -33,10 +34,10 @@ function SubmitButton({
       {pending
         ? "Updating..."
         : !fileSelected && expirationDate
-        ? "Update Expiration Date"
-        : fileSelected
-        ? "Upload New Version"
-        : "Update Document"}
+          ? "Update Expiration Date"
+          : fileSelected
+            ? "Upload New Version"
+            : "Update Document"}
     </Button>
   );
 }
@@ -56,10 +57,7 @@ export default function EditDocumentPage({
   const [fileSelected, setFileSelected] = useState(false);
 
   // Create a bound action that includes documentId
-  const boundUpdateAction = async (
-    prevState: any,
-    formData: FormData
-  ) => {
+  const boundUpdateAction = async (prevState: any, formData: FormData) => {
     formData.append("documentId", documentId);
     return updateDocumentAction(formData);
   };
@@ -88,7 +86,6 @@ export default function EditDocumentPage({
       });
     }
   }, [state, router, documentId]);
-
 
   // Fetch document data
   useEffect(() => {
@@ -135,12 +132,10 @@ export default function EditDocumentPage({
       {/* Top navigation bar */}
       <div className="bg-background border-b px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link
-            href={"/documents/" + documentId}
-            className="flex items-center text-muted-foreground hover:text-foreground">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back
-          </Link>
+          <BackButton
+            href={`/documents/${documentId}`}
+            message="Back to Document Details"
+          />
           <h1 className="text-xl font-semibold truncate">Edit Document</h1>
         </div>
 
