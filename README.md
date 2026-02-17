@@ -41,7 +41,7 @@
 - [x] Should include user location Should view all requiremnts for a
       jobtitle or location
 - [x] Edit back button in document/[id]/edit page
-- [ ] Add tanstack table for users
+- [x] Add tanstack table for users
 - [ ] Add application tour using https://driverjs.com/
 - [x] Fix Date of Birth calendar component
 - [ ] ERP Integration

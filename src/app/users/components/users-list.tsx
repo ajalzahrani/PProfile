@@ -1,15 +1,9 @@
 "use client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { FileEdit, Trash2 } from "lucide-react";
-import Link from "next/link";
+
+import { useState } from "react";
+import { toast } from "@/components/ui/use-toast";
+import { deleteUser } from "@/actions/users";
+import { User } from "./users-columns";
 import {
   Dialog,
   DialogContent,
@@ -18,19 +12,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
-import { toast } from "@/components/ui/use-toast";
-import { deleteUser } from "@/actions/users";
-import { UserFormValuesWithRolesAndDepartments } from "@/actions/users.validations";
+import { Button } from "@/components/ui/button";
+import { FileEdit, Trash2 } from "lucide-react";
+import { userColumns } from "./users-columns";
+import { UsersDataTable } from "./users-data-table";
+import Link from "next/link";
 
 interface UserListProps {
-  users: UserFormValuesWithRolesAndDepartments[];
+  users: User[];
 }
 
 export function UserList({ users }: UserListProps) {
-  const [userToDelete, setUserToDelete] =
-    useState<UserFormValuesWithRolesAndDepartments | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteUser = async () => {
@@ -55,7 +48,7 @@ export function UserList({ users }: UserListProps) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "An error occurred while deleting the role",
+        description: "An error occurred while deleting the user",
       });
       console.error(err);
     } finally {
@@ -64,61 +57,63 @@ export function UserList({ users }: UserListProps) {
     }
   };
 
+  // Transform users data to match the User type
+  const tableData: User[] = users.map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    username: user.username,
+    role: {
+      id: user.role.id,
+      name: user.role.name,
+    },
+    department: user.department
+      ? {
+          id: user.department.id,
+          name: user.department.name,
+        }
+      : null,
+  }));
+
+  // Add delete action to columns
+  const columnsWithDelete = userColumns.map((column) => {
+    if (column.id === "actions") {
+      return {
+        ...column,
+        cell: ({ row }: any) => {
+          const userId = row.original.id;
+          if (!userId) return null;
+
+          const user = users.find((u) => u.id === userId);
+
+          return (
+            <div className="flex items-center gap-2 justify-end">
+              <Link href={`/users/${userId}/edit`}>
+                <Button variant="ghost" size="icon">
+                  <FileEdit className="h-4 w-4" />
+                  <span className="sr-only">Edit</span>
+                </Button>
+              </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  if (user) setUserToDelete(user);
+                }}>
+                <Trash2 className="h-4 w-4" />
+                <span className="sr-only">Delete</span>
+              </Button>
+            </div>
+          );
+        },
+      };
+    }
+    return column;
+  });
+
   return (
-    <div className="rounded-md border">
-      <Card>
-        <CardHeader>
-          <CardTitle>User Management</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Display Name</TableHead>
-                <TableHead>Username</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.length > 0 ? (
-                users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.name}</TableCell>
-                    <TableCell>{user.username}</TableCell>
-                    <TableCell>{user.role.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.department?.name}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon">
-                        <Link href={`/users/${user.id}/edit`}>
-                          <FileEdit className="h-4 w-4" />
-                          <span className="sr-only">Edit</span>
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setUserToDelete(user)}>
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Delete</span>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={2} className="h-24 text-center">
-                    No users found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+    <>
+      <UsersDataTable columns={columnsWithDelete} data={tableData} />
 
       {/* Delete Confirmation Dialog */}
       <Dialog
@@ -148,6 +143,6 @@ export function UserList({ users }: UserListProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
