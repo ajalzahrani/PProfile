@@ -20,18 +20,9 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { getTestingEmails } from "@/actions/users";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useSearchParams } from "next/navigation";
 
 const loginSchema = z.object({
-  // email: z.string().email("Invalid email address"),
   username: z.string().min(2, "Username must be at least 2 characters"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
@@ -40,7 +31,6 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 function Login() {
   const router = useRouter();
-  const [testingEmails, setTestingEmails] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -53,7 +43,6 @@ function Login() {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -88,18 +77,6 @@ function Login() {
     }
   };
 
-  useEffect(() => {
-    const fetchEmails = async () => {
-      const { success, emails } = await getTestingEmails();
-      if (success) {
-        setTestingEmails(emails);
-      } else {
-        setError("Failed to fetch testing emails");
-      }
-    };
-    fetchEmails();
-  }, []);
-
   return (
     <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-gray-50 dark:bg-gray-900">
       <Card className="w-full max-w-md mx-4">
@@ -116,25 +93,6 @@ function Login() {
             </Alert>
           )}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Testing Emails</Label>
-              <Select
-                disabled={testingEmails.length === 0}
-                onValueChange={(value: string) => {
-                  setValue("username", value);
-                }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Testing Email" />
-                </SelectTrigger>
-                <SelectContent>
-                  {testingEmails.filter(Boolean).map((email: string) => (
-                    <SelectItem key={email} value={email}>
-                      {email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               {/*
