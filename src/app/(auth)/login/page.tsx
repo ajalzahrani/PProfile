@@ -47,8 +47,8 @@ function Login() {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "823631",
-      password: "Nostring@2",
+      username: "",
+      password: "",
     },
   });
 

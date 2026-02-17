@@ -28,6 +28,11 @@ async function main() {
     { en: "Doctor", ar: "طبيب" },
     { en: "Nurse", ar: "ممرض" },
     { en: "Technician", ar: "فني" },
+    { en: "MEDICAL RESIDENT-FMC", ar: "طبيب مقيم - طب الأسرة" },
+    { en: "SNR REGISTRAR - FAMILY MEDICINE", ar: "أخصائي أول - طب الأسرة" },
+    { en: "FAMILY MEDICINE CONSULTANT", ar: "إستشاري طب الأسرة" },
+    { en: "REGISTRAR - FAMILY MEDICNE", ar: "اخصائي طب اسرة" },
+    { en: "GENERAL PRACTITIONER", ar: "طبيب ممارس عام" },
   ];
 
   const jobMap: any = {};
